@@ -1,0 +1,62 @@
+{
+  "mcpServers": {
+    "playwright-custom": {
+      "command": "node",
+      "args": [
+        "C:\\cursor_test\\mcp-playwright-server\\dist\\index.js"
+      ],
+      "cwd": "C:\\cursor_test",
+      "env": {}
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "puppeteer-mcp-server"
+      ],
+      "env": {}
+    },
+    "shadcn-ui": {
+      "command": "npx",
+      "args": [
+        "@jpisnice/shadcn-ui-mcp-server"
+      ],
+      "env": {}
+    },
+    "shadcn-simple": {
+      "command": "npx",
+      "args": [
+        "shadcn-mcp"
+      ],
+      "env": {}
+    },
+    "tailwind-css": {
+      "command": "node",
+      "args": [
+        "C:\\cursor_test\\mcp-tailwind-server\\dist\\index.js"
+      ],
+      "cwd": "C:\\cursor_test",
+      "env": {}
+    },
+    "supabase-official": {
+      "command": "npx",
+      "args": [
+        "@supabase/mcp-server-supabase"
+      ],
+      "env": {}
+    },
+    "supabase-crud": {
+      "command": "npx",
+      "args": [
+        "supabase-mcp"
+      ],
+      "env": {}
+    },
+    "firebase": {
+      "command": "npx",
+      "args": [
+        "@gannonh/firebase-mcp"
+      ],
+      "env": {}
+    }
+  }
+}
