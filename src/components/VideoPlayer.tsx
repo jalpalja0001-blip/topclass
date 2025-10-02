@@ -35,6 +35,56 @@ export default function VideoPlayer({
     }
   }, [initialTime])
 
+  // 보안 기능: 스크린샷 및 녹화 방지
+  useEffect(() => {
+    const preventScreenshot = () => {
+      // F12, Ctrl+Shift+I 등 개발자 도구 단축키 방지
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'F12' || 
+            (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+            (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+            (e.ctrlKey && e.key === 'u') ||
+            (e.ctrlKey && e.key === 's')) {
+          e.preventDefault()
+          return false
+        }
+      })
+
+      // 우클릭 방지
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault()
+        return false
+      })
+
+      // 드래그 방지
+      document.addEventListener('dragstart', (e) => {
+        e.preventDefault()
+        return false
+      })
+
+      // 선택 방지
+      document.addEventListener('selectstart', (e) => {
+        e.preventDefault()
+        return false
+      })
+
+      // Print Screen 키 방지
+      document.addEventListener('keyup', (e) => {
+        if (e.key === 'PrintScreen') {
+          navigator.clipboard.writeText('')
+          e.preventDefault()
+          return false
+        }
+      })
+    }
+
+    preventScreenshot()
+
+    return () => {
+      // 클린업은 하지 않음 (보안을 위해)
+    }
+  }, [])
+
   useEffect(() => {
     const resetControlsTimeout = () => {
       if (controlsTimeoutRef.current) {
@@ -108,30 +158,56 @@ export default function VideoPlayer({
 
   return (
     <div
-      className="relative bg-black rounded-lg overflow-hidden group"
+      className="relative bg-black rounded-lg overflow-hidden group select-none"
       onMouseMove={() => setShowControls(true)}
       onMouseLeave={() => playing && setShowControls(false)}
+      onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+      onSelectStart={(e) => e.preventDefault()}
+      style={{
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitUserDrag: 'none',
+        KhtmlUserSelect: 'none',
+      }}
     >
-      <ReactPlayer
-        ref={playerRef}
-        url={url}
-        playing={playing}
-        volume={volume}
-        muted={muted}
-        playbackRate={playbackRate}
-        width="100%"
-        height="100%"
-        onProgress={handleProgress}
-        onDuration={setDuration}
-        onEnded={onEnded}
-        config={{
-          file: {
-            attributes: {
-              controlsList: 'nodownload',
+      <div className="relative w-full h-full">
+        <ReactPlayer
+          ref={playerRef}
+          url={url}
+          playing={playing}
+          volume={volume}
+          muted={muted}
+          playbackRate={playbackRate}
+          width="100%"
+          height="100%"
+          onProgress={handleProgress}
+          onDuration={setDuration}
+          onEnded={onEnded}
+          config={{
+            file: {
+              attributes: {
+                controlsList: 'nodownload nofullscreen noremoteplayback',
+                disablePictureInPicture: true,
+                oncontextmenu: 'return false',
+                onselectstart: 'return false',
+                ondragstart: 'return false',
+              },
             },
-          },
-        }}
-      />
+          }}
+        />
+        {/* 보안 오버레이 - 스크린샷 방지 */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'transparent',
+            zIndex: 1,
+          }}
+        />
+      </div>
 
       {/* Custom Controls */}
       <div
