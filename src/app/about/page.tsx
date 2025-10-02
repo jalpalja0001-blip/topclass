@@ -11,7 +11,7 @@ export default function AboutPage() {
       <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            타이탄클래스
+            잘파는클래스
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-blue-100">
             실무 전문가들과 함께하는 온라인 교육 플랫폼
@@ -31,7 +31,7 @@ export default function AboutPage() {
                 우리의 미션
               </h2>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                타이탄클래스는 실무 전문가들의 검증된 노하우를 통해 누구나 쉽게 배우고 
+                잘파는클래스는 실무 전문가들의 검증된 노하우를 통해 누구나 쉽게 배우고 
                 실제 수익을 창출할 수 있도록 돕는 것이 목표입니다.
               </p>
               <p className="text-lg text-gray-600 leading-relaxed">
@@ -74,7 +74,7 @@ export default function AboutPage() {
               핵심 가치
             </h2>
             <p className="text-lg text-gray-600">
-              타이탄클래스가 추구하는 가치와 철학입니다
+              잘파는클래스가 추구하는 가치와 철학입니다
             </p>
           </div>
 

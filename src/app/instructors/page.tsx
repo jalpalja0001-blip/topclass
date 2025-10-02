@@ -171,7 +171,7 @@ export default function InstructorsPage() {
       <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            타이탄클래스 강사진
+            잘파는클래스 강사진
           </h1>
           <p className="text-xl mb-8 text-blue-100">
             각 분야 최고의 전문가들이 여러분의 성공을 도와드립니다
@@ -302,7 +302,7 @@ export default function InstructorsPage() {
             당신도 강사가 되어보세요!
           </h2>
           <p className="text-xl mb-8 text-blue-100">
-            전문 지식과 경험을 가지고 계신가요? 타이탄클래스와 함께하세요
+            전문 지식과 경험을 가지고 계신가요? 잘파는클래스와 함께하세요
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

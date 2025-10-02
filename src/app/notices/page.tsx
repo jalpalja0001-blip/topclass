@@ -18,7 +18,7 @@ const notices = [
   },
   {
     id: 2,
-    title: '타이탄클래스 앱 출시 예정 안내',
+    title: '잘파는클래스 앱 출시 예정 안내',
     content: '더욱 편리한 학습을 위한 모바일 앱이 곧 출시됩니다.',
     date: '2024-11-28',
     views: 856,
@@ -37,7 +37,7 @@ const notices = [
   {
     id: 4,
     title: '새로운 강사진 합류 안내',
-    content: '실무 전문가 5명이 새롭게 타이탄클래스에 합류했습니다.',
+    content: '실무 전문가 5명이 새롭게 잘파는클래스에 합류했습니다.',
     date: '2024-11-20',
     views: 567,
     isPinned: false,
@@ -72,8 +72,8 @@ const notices = [
   },
   {
     id: 8,
-    title: '타이탄클래스 1주년 기념 이벤트',
-    content: '타이탄클래스 1주년을 기념하여 다양한 이벤트를 준비했습니다.',
+    title: '잘파는클래스 1주년 기념 이벤트',
+    content: '잘파는클래스 1주년을 기념하여 다양한 이벤트를 준비했습니다.',
     date: '2024-10-30',
     views: 3456,
     isPinned: false,
@@ -148,7 +148,7 @@ export default function NoticesPage() {
             공지사항
           </h1>
           <p className="text-xl mb-8 text-blue-100">
-            타이탄클래스의 최신 소식과 중요한 안내사항을 확인하세요
+            잘파는클래스의 최신 소식과 중요한 안내사항을 확인하세요
           </p>
         </div>
       </section>

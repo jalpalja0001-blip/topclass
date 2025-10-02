@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "타이탄클래스 - 온라인 강의 플랫폼",
-  description: "최고의 온라인 강의를 만나보세요. 타이탄클래스에서 전문가들이 제작한 고품질 강의를 경험하세요.",
+  title: "잘파는클래스 - 온라인 강의 플랫폼",
+  description: "최고의 온라인 강의를 만나보세요. 잘파는클래스에서 전문가들이 제작한 고품질 강의를 경험하세요.",
 };
 
 export default function RootLayout({

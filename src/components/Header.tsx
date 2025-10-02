@@ -49,12 +49,12 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="text-2xl font-bold text-gray-900">
-            타이탄<span className="text-blue-600">클래스</span>
+            잘파는<span className="text-blue-600">클래스</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex space-x-8">
-            {/* 타이탄 Dropdown */}
+            {/* 잘파는 Dropdown */}
             <div 
               className="relative group"
               onMouseEnter={() => handleMouseEnter('titan')}
@@ -64,7 +64,7 @@ export default function Header() {
                 className="flex items-center text-gray-700 hover:text-blue-600 transition-colors"
                 onClick={() => toggleDropdown('titan')}
               >
-                타이탄
+                잘파는
                 <ChevronDown className="w-4 h-4 ml-1" />
               </button>
               <div className={`absolute top-full left-0 mt-1 w-48 bg-white shadow-lg rounded-lg border ${
@@ -151,7 +151,7 @@ export default function Header() {
           <div className="lg:hidden border-t border-gray-200 py-4">
             <div className="space-y-4">
               <div>
-                <div className="font-medium text-gray-900 mb-2">타이탄</div>
+                <div className="font-medium text-gray-900 mb-2">잘파는</div>
                 <div className="pl-4 space-y-2">
                   <Link href="/about" className="block text-sm text-gray-600 hover:text-blue-600">회사소개</Link>
                   <Link href="/instructors" className="block text-sm text-gray-600 hover:text-blue-600">강사소개</Link>

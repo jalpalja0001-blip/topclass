@@ -11,13 +11,13 @@ export default function InstructorApplyPage() {
       <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            타이탄클래스 강사가 되어보세요
+            잘파는클래스 강사가 되어보세요
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-blue-100">
             당신의 전문 지식으로 많은 사람들의 성공을 도와주세요
           </p>
           <p className="text-lg text-blue-100 max-w-3xl mx-auto">
-            검증된 노하우와 실무 경험을 가진 전문가라면 누구나 타이탄클래스 강사가 될 수 있습니다.
+            검증된 노하우와 실무 경험을 가진 전문가라면 누구나 잘파는클래스 강사가 될 수 있습니다.
           </p>
         </div>
       </section>
@@ -27,7 +27,7 @@ export default function InstructorApplyPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              타이탄클래스 강사의 혜택
+              잘파는클래스 강사의 혜택
             </h2>
             <p className="text-lg text-gray-600">
               강사님만을 위한 특별한 혜택들을 확인해보세요
@@ -182,7 +182,7 @@ export default function InstructorApplyPage() {
               강사 지원 프로세스
             </h2>
             <p className="text-lg text-gray-600">
-              간단한 4단계로 타이탄클래스 강사가 되실 수 있습니다
+              간단한 4단계로 잘파는클래스 강사가 되실 수 있습니다
             </p>
           </div>
 

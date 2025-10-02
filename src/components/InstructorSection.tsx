@@ -160,7 +160,7 @@ export default function InstructorSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">타이탄클래스 강사</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">잘파는클래스 강사</h2>
             <p className="text-gray-600">각 분야 최고의 전문가들을 만나보세요</p>
           </div>
           <Link href="/instructors" className="text-blue-600 hover:text-blue-700 font-medium">

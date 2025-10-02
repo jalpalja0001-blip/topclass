@@ -119,7 +119,7 @@ export default function SchedulePage() {
             교육 일정
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            타이탄클래스의 다양한 강의 일정을 확인하고 원하는 강의에 신청하세요
+            잘파는클래스의 다양한 강의 일정을 확인하고 원하는 강의에 신청하세요
           </p>
         </div>
 

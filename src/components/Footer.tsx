@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-xl font-bold text-blue-400 mb-4">타이탄클래스</h3>
+            <h3 className="text-xl font-bold text-blue-400 mb-4">잘파는클래스</h3>
             <p className="text-gray-300 mb-4">
               최고의 온라인 강의 플랫폼으로 여러분의 성장을 도와드립니다.
               전문가들이 제작한 고품질 강의를 만나보세요.
@@ -87,7 +87,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 타이탄클래스. 모든 권리 보유.
+            © 2024 잘파는클래스. 모든 권리 보유.
           </p>
         </div>
       </div>
