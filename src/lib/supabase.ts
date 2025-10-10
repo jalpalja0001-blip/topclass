@@ -54,13 +54,23 @@ export const supabase = createClient(finalUrl, finalKey, {
 // 연결 테스트 함수
 export async function testSupabaseConnection() {
   try {
+    // 1295 오류 방지를 위해 간단한 쿼리 사용
     const { data, error } = await supabase
       .from('categories')
-      .select('count')
+      .select('id')
       .limit(1)
     
     if (error) {
       console.error('Supabase 연결 테스트 실패:', error.message)
+      console.error('오류 코드:', error.code)
+      console.error('오류 세부사항:', error.details)
+      
+      // 1295 오류인 경우 특별 처리
+      if (error.code === 'PGRST1295' || error.message.includes('1295')) {
+        console.warn('⚠️ MySQL 1295 오류 감지. 더미 데이터 모드로 전환합니다.')
+        return false
+      }
+      
       return false
     }
     

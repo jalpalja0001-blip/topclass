@@ -95,15 +95,32 @@ export async function testSampleData() {
 export async function getDatabaseStatus() {
   console.log('🔍 데이터베이스 상태 확인 시작...')
   
-  // 1. 연결 테스트
-  const connectionTest = await checkDatabaseConnection()
-  if (!connectionTest.success) {
-    return {
-      status: 'error',
-      message: '데이터베이스 연결 실패',
-      details: connectionTest.error
+  try {
+    // 1. 연결 테스트 (더 안전한 방식)
+    const connectionTest = await checkDatabaseConnection()
+    if (!connectionTest.success) {
+      // 1295 오류나 테이블 없음 오류인 경우 특별 처리
+      if (connectionTest.error && (
+        connectionTest.error.includes('1295') || 
+        connectionTest.error.includes('Could not find the table') ||
+        connectionTest.error.includes('schema cache')
+      )) {
+        console.warn('⚠️ 데이터베이스 테이블 없음 감지. 연결 안됨으로 설정합니다.')
+        return {
+          status: 'warning',
+          message: '데이터베이스 테이블 없음',
+          details: 'Supabase 데이터베이스에 필요한 테이블이 없습니다.',
+          isConnected: false
+        }
+      }
+      
+      return {
+        status: 'error',
+        message: '데이터베이스 연결 실패',
+        details: connectionTest.error,
+        isConnected: false
+      }
     }
-  }
   
   // 2. 테이블 존재 확인
   const tableStatus = await checkTablesExist()
@@ -130,9 +147,29 @@ export async function getDatabaseStatus() {
     }
   }
   
-  return {
-    status: 'success',
-    message: '데이터베이스가 정상적으로 작동합니다',
-    details: dataTest.data
+    return {
+      status: 'success',
+      message: '데이터베이스가 정상적으로 작동합니다',
+      details: dataTest.data
+    }
+  } catch (error) {
+    console.error('데이터베이스 상태 확인 중 오류:', error)
+    
+    // 1295 오류인 경우 특별 처리
+    if (error instanceof Error && error.message.includes('1295')) {
+      console.warn('⚠️ MySQL 1295 오류로 인해 더미 데이터 모드로 전환합니다.')
+      return {
+        status: 'warning',
+        message: 'MySQL 1295 오류 - 더미 데이터 모드',
+        details: 'Supabase 데이터베이스 연결에 문제가 있습니다. 더미 데이터를 사용합니다.',
+        isConnected: false
+      }
+    }
+    
+    return {
+      status: 'error',
+      message: '데이터베이스 상태 확인 실패',
+      details: error instanceof Error ? error.message : '알 수 없는 오류'
+    }
   }
 }

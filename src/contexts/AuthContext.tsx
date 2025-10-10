@@ -31,13 +31,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('🔐 Auth state changed:', event, session?.user?.email)
         
         if (session?.user) {
-          setUser({
+          const userData = {
             id: session.user.id,
             email: session.user.email!,
             name: session.user.user_metadata?.name || session.user.email!,
-          })
+          }
+          setUser(userData)
+          // localStorage에 이메일 저장 (관리자 권한 확인용)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('userEmail', session.user.email!)
+          }
         } else {
           setUser(null)
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('userEmail')
+          }
         }
         setLoading(false)
       }
@@ -46,11 +54,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 초기 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        setUser({
+        const userData = {
           id: session.user.id,
           email: session.user.email!,
           name: session.user.user_metadata?.name || session.user.email!,
-        })
+        }
+        setUser(userData)
+        // localStorage에 이메일 저장 (관리자 권한 확인용)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userEmail', session.user.email!)
+        }
       }
       setLoading(false)
     })
@@ -95,11 +108,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.user) {
         console.log('✅ Supabase 로그인 성공:', data.user.email)
-        setUser({
+        const userData = {
           id: data.user.id,
           email: data.user.email!,
           name: data.user.user_metadata?.name || data.user.email!,
-        })
+        }
+        setUser(userData)
+        // localStorage에 이메일 저장 (관리자 권한 확인용)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userEmail', data.user.email!)
+        }
         return true
       }
 
@@ -132,11 +150,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.user) {
         console.log('✅ Supabase 회원가입 성공:', data.user.email)
-        setUser({
+        const userData = {
           id: data.user.id,
           email: data.user.email!,
           name: data.user.user_metadata?.name || data.user.email!,
-        })
+        }
+        setUser(userData)
+        // localStorage에 이메일 저장 (관리자 권한 확인용)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userEmail', data.user.email!)
+        }
         return true
       }
 
@@ -161,9 +184,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       setUser(null)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userEmail')
+      }
     } catch (error) {
       console.error('Logout failed:', error)
       setUser(null)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userEmail')
+      }
     }
   }
 

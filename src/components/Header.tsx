@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { User, LogOut, Menu, X, ChevronDown, Search } from 'lucide-react'
+import { useAdmin } from '@/hooks/useAdmin'
+import { User, LogOut, Menu, X, ChevronDown, Search, Settings } from 'lucide-react'
 
 export default function Header() {
   const { user, logout } = useAuth()
+  const { isAdmin, loading: adminLoading } = useAdmin()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
@@ -90,6 +92,12 @@ export default function Header() {
             <Link href="/notices" className="text-gray-700 hover:text-blue-600 transition-colors">
               공지사항
             </Link>
+            {!adminLoading && isAdmin && (
+              <Link href="/admin" className="text-gray-700 hover:text-blue-600 transition-colors flex items-center">
+                <Settings className="w-4 h-4 mr-1" />
+                관리자페이지
+              </Link>
+            )}
           </nav>
 
           {/* Search & User Actions */}
@@ -164,6 +172,12 @@ export default function Header() {
               <Link href="/ebooks" className="block text-gray-700 hover:text-blue-600">전자책</Link>
               <Link href="/community" className="block text-gray-700 hover:text-blue-600">커뮤니티</Link>
               <Link href="/notices" className="block text-gray-700 hover:text-blue-600">공지사항</Link>
+              {!adminLoading && isAdmin && (
+                <Link href="/admin" className="block text-gray-700 hover:text-blue-600 flex items-center">
+                  <Settings className="w-4 h-4 mr-2" />
+                  관리자페이지
+                </Link>
+              )}
             </div>
           </div>
         )}
