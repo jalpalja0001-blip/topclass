@@ -66,7 +66,7 @@ export default function Home() {
               <div className="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center mb-2">
                 <Award className="w-6 h-6 text-white" />
               </div>
-              <span className="text-sm font-medium text-gray-700">타이탄 클래스</span>
+              <span className="text-sm font-medium text-gray-700">잘파는 클래스</span>
             </Link>
           </div>
         </div>

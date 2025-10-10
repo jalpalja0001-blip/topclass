@@ -18,7 +18,8 @@ import {
   TrendingUp,
   DollarSign,
   Star,
-  AlertCircle
+  AlertCircle,
+  Home
 } from 'lucide-react'
 
 interface AdminStats {
@@ -244,9 +245,18 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* 헤더 */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
-        <p className="text-gray-600 mt-2">전체 시스템 현황을 한눈에 확인하세요</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">관리자 대시보드</h1>
+          <p className="text-gray-600 mt-2">전체 시스템 현황을 한눈에 확인하세요</p>
+        </div>
+        <Link
+          href="/"
+          className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          <Home className="w-4 h-4 mr-2" />
+          메인화면으로 돌아가기
+        </Link>
       </div>
 
       {/* 통계 카드 */}
