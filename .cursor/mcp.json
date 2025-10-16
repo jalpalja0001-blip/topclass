@@ -8,24 +8,10 @@
       "cwd": "C:\\cursor_test",
       "env": {}
     },
-    "puppeteer": {
-      "command": "npx",
-      "args": [
-        "puppeteer-mcp-server"
-      ],
-      "env": {}
-    },
     "shadcn-ui": {
       "command": "npx",
       "args": [
         "@jpisnice/shadcn-ui-mcp-server"
-      ],
-      "env": {}
-    },
-    "shadcn-simple": {
-      "command": "npx",
-      "args": [
-        "shadcn-mcp"
       ],
       "env": {}
     },
@@ -37,24 +23,11 @@
       "cwd": "C:\\cursor_test",
       "env": {}
     },
-    "supabase-official": {
+    "context7": {
       "command": "npx",
       "args": [
-        "@supabase/mcp-server-supabase"
-      ],
-      "env": {}
-    },
-    "supabase-crud": {
-      "command": "npx",
-      "args": [
-        "supabase-mcp"
-      ],
-      "env": {}
-    },
-    "firebase": {
-      "command": "npx",
-      "args": [
-        "@gannonh/firebase-mcp"
+        "-y",
+        "@upstash/context7-mcp"
       ],
       "env": {}
     }
