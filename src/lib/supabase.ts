@@ -21,8 +21,8 @@ if (!supabaseUrl || !supabaseKey) {
   console.error('개발용 임시 설정을 사용합니다...')
   
   // 개발용 임시 설정 (프로덕션에서는 제거해야 함)
-  const tempUrl = 'https://likscdiwibbmqnamicon.supabase.co'
-  const tempKey = 'sb_publishable_7fvcqr7Pb9Hz2ptfjkjj7Q_ubZyQNky'
+  const tempUrl = 'https://mpejkujtaiqgmbazobjv.supabase.co'
+  const tempKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZWprdWp0YWlxZ21iYXpvYmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1ODIwMDAsImV4cCI6MjA3NjE1ODAwMH0.cpFLDyB2QsPEh-8UT5DtXIdIyeN8--Z7V8fdVs3bZII'
   
   console.warn('⚠️ 경고: 하드코딩된 Supabase 설정을 사용합니다. 프로덕션에서는 환경 변수를 사용하세요.')
   

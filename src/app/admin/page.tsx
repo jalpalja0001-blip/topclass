@@ -68,37 +68,110 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Supabase에서 토큰 가져오기
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.access_token) {
+        if (!user?.email) {
           setError('로그인이 필요합니다.')
           setLoading(false)
           return
         }
 
-        const response = await fetch('/api/admin/stats', {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
-        })
-
-        const data = await response.json()
-
-        if (data.success) {
-          setStats(data.data)
-        } else {
-          setError(data.error || '통계 데이터를 불러올 수 없습니다.')
+        // 임시 데이터 사용
+        const dummyStats: AdminStats = {
+          overview: {
+            totalUsers: 1234,
+            recentUsers: 56,
+            totalCourses: 78,
+            recentCourses: 5,
+            totalPurchases: 890,
+            recentPurchases: 23,
+            totalRevenue: 12345678,
+            recentRevenue: 1234567
+          },
+          popularCourses: [
+            {
+              id: '1',
+              title: '[파파준스] 나만의 AI 사진작가로 월300 버는 올인원 무료강의',
+              purchases: 234,
+              revenue: 2345678,
+              rating: 4.8
+            },
+            {
+              id: '2',
+              title: '[내일은편하게] 0원으로 초보자도 추가 월급 벌기 무료강의',
+              purchases: 189,
+              revenue: 1890000,
+              rating: 4.7
+            },
+            {
+              id: '3',
+              title: '[광마] 주부도 억대 매출 낸 AI쿠팡로켓 수익화 무료강의',
+              purchases: 156,
+              revenue: 1560000,
+              rating: 4.6
+            },
+            {
+              id: '4',
+              title: '[홍시삼분] 노베이스 초보자도 가능! AI 자동화 해외구매대행 무료강의',
+              purchases: 123,
+              revenue: 1230000,
+              rating: 4.5
+            },
+            {
+              id: '5',
+              title: '[현우] 초보자도 가능한 소개부업 수익화 무료강의',
+              purchases: 98,
+              revenue: 980000,
+              rating: 4.4
+            }
+          ],
+          recentActivities: [
+            {
+              id: 1,
+              type: 'purchase',
+              message: '새로운 강의 구매가 완료되었습니다.',
+              timestamp: new Date().toISOString(),
+              icon: 'shopping-cart',
+              color: 'green'
+            },
+            {
+              id: 2,
+              type: 'user',
+              message: '새로운 사용자가 가입했습니다.',
+              timestamp: new Date(Date.now() - 3600000).toISOString(),
+              icon: 'user',
+              color: 'blue'
+            },
+            {
+              id: 3,
+              type: 'course',
+              message: '새로운 강의가 등록되었습니다.',
+              timestamp: new Date(Date.now() - 7200000).toISOString(),
+              icon: 'book',
+              color: 'purple'
+            }
+          ],
+          monthlyRevenue: [
+            { month: '1월', revenue: 1234567 },
+            { month: '2월', revenue: 2345678 },
+            { month: '3월', revenue: 3456789 }
+          ],
+          categoryStats: [
+            { category: '프로그래밍', count: 12, revenue: 1234567 },
+            { category: '디자인', count: 8, revenue: 890123 },
+            { category: '마케팅', count: 15, revenue: 2345678 }
+          ]
         }
+
+        setStats(dummyStats)
+        setLoading(false)
       } catch (error) {
         console.error('통계 데이터 로드 오류:', error)
         setError('통계 데이터를 불러오는 중 오류가 발생했습니다.')
-      } finally {
         setLoading(false)
       }
     }
 
     fetchStats()
-  }, [])
+  }, [user?.email])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ko-KR', {

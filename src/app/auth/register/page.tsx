@@ -46,7 +46,7 @@ export default function RegisterPage() {
       const success = await register(email, password, name || undefined)
       
       if (success) {
-        router.push('/dashboard')
+        router.push('/')
       } else {
         setError('회원가입 중 오류가 발생했습니다.')
       }

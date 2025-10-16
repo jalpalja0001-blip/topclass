@@ -29,6 +29,13 @@ interface CourseForm {
   is_featured: boolean
   tags: string[]
   thumbnail_url: string
+  detail_image_url: string
+}
+
+interface UploadResponse {
+  success: boolean
+  url?: string
+  error?: string
 }
 
 export default function CreateCoursePage() {
@@ -50,8 +57,39 @@ export default function CreateCoursePage() {
     status: 'draft',
     is_featured: false,
     tags: [],
-    thumbnail_url: ''
+    thumbnail_url: '',
+    detail_image_url: ''
   })
+
+  const handleImageUpload = async (file: File, type: 'thumbnail' | 'detail') => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', type)
+
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data: UploadResponse = await response.json()
+
+      if (!data.success || !data.url) {
+        throw new Error(data.error || '이미지 업로드에 실패했습니다.')
+      }
+
+      setForm(prev => ({
+        ...prev,
+        [type === 'thumbnail' ? 'thumbnail_url' : 'detail_image_url']: data.url
+      }))
+
+      return data.url
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error)
+      setError('이미지 업로드 중 오류가 발생했습니다.')
+      return null
+    }
+  }
 
   const handleInputChange = (field: keyof CourseForm, value: any) => {
     setForm(prev => ({
@@ -99,17 +137,21 @@ export default function CreateCoursePage() {
     setError(null)
 
     try {
-      // Supabase에서 토큰 가져오기
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        setError('로그인이 필요합니다.')
-        setLoading(false)
-        return
+      // API 호출로 강의 생성
+      const response = await fetch('/api/admin/courses/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form)
+      })
+
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error || '강의 생성에 실패했습니다.')
       }
 
-      // 실제로는 API 호출로 강의 생성
-      console.log('새 강의 생성:', form)
-      
       // 성공 시 강의 관리 페이지로 이동
       router.push('/admin/courses')
       
@@ -160,6 +202,102 @@ export default function CreateCoursePage() {
 
       {/* 강의 생성 폼 */}
       <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">이미지 업로드</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                메인 카드 이미지 (썸네일)
+              </label>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg relative">
+                {form.thumbnail_url ? (
+                  <div className="space-y-2">
+                    <img
+                      src={form.thumbnail_url}
+                      alt="썸네일 미리보기"
+                      className="max-h-40 rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, thumbnail_url: '' }))}
+                      className="text-sm text-red-600 hover:text-red-800"
+                    >
+                      이미지 제거
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-1 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label className="relative cursor-pointer rounded-md bg-white font-medium text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 hover:text-blue-500">
+                        <span>이미지 업로드</span>
+                        <input
+                          type="file"
+                          className="sr-only"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) handleImageUpload(file, 'thumbnail')
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      PNG, JPG, GIF (최대 10MB)
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                상세 페이지 이미지
+              </label>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg relative">
+                {form.detail_image_url ? (
+                  <div className="space-y-2">
+                    <img
+                      src={form.detail_image_url}
+                      alt="상세 이미지 미리보기"
+                      className="max-h-40 rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, detail_image_url: '' }))}
+                      className="text-sm text-red-600 hover:text-red-800"
+                    >
+                      이미지 제거
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-1 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label className="relative cursor-pointer rounded-md bg-white font-medium text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 hover:text-blue-500">
+                        <span>이미지 업로드</span>
+                        <input
+                          type="file"
+                          className="sr-only"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) handleImageUpload(file, 'detail')
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      PNG, JPG, GIF (최대 10MB)
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">기본 정보</h2>
           

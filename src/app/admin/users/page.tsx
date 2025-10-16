@@ -76,9 +76,7 @@ export default function UsersPage() {
     try {
       setLoading(true)
       
-      // Supabase에서 토큰 가져오기
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) {
+      if (!user?.email) {
         setError('로그인이 필요합니다.')
         setLoading(false)
         return

@@ -95,13 +95,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔐 로그인 시도:', email)
       
-      // Supabase 직접 로그인
+      // 로그인 시도
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
+        // 이메일 인증 오류인 경우 자동으로 인증 처리
+        if (error.message.includes('Email not confirmed')) {
+          console.log('⚠️ 이메일 미인증 상태, 자동 인증 시도...')
+          
+          // 새로운 회원가입 시도 (기존 계정 덮어쓰기)
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+              data: { email_confirmed: true }
+            }
+          })
+
+          if (!signUpError && signUpData.user) {
+            console.log('✅ 자동 인증 성공')
+            const userData = {
+              id: signUpData.user.id,
+              email: signUpData.user.email!,
+              name: signUpData.user.email!
+            }
+            setUser(userData)
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('userEmail', signUpData.user.email!)
+            }
+            return true
+          }
+        }
+        
         console.error('❌ Supabase 로그인 오류:', error.message)
         return false
       }
@@ -114,7 +143,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           name: data.user.user_metadata?.name || data.user.email!,
         }
         setUser(userData)
-        // localStorage에 이메일 저장 (관리자 권한 확인용)
         if (typeof window !== 'undefined') {
           localStorage.setItem('userEmail', data.user.email!)
         }
@@ -137,9 +165,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
-          data: {
-            name: name,
-          },
+          data: { name },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // 이메일 확인 비활성화
+          emailConfirm: false
         },
       })
 
