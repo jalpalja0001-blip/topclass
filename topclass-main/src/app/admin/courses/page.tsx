@@ -46,9 +46,9 @@ interface Course {
   is_featured: boolean
   created_at: string
   updated_at: string
-  student_count: number
-  rating: number
-  review_count: number
+  student_count?: number
+  rating?: number
+  review_count?: number
   tags: string[]
 }
 
@@ -93,9 +93,22 @@ export default function CoursesPage() {
     fetchCourses()
   }, [currentPage, searchTerm, categoryFilter, statusFilter, levelFilter, activeFilter])
 
+  // URL 쿼리 파라미터 변경 감지 (강의 생성 후 새로고침)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('refresh')) {
+      // 새로고침 쿼리 파라미터가 있으면 강의 목록 다시 로드
+      fetchCourses()
+      // URL에서 쿼리 파라미터 제거
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [])
+
   const fetchCourses = async () => {
     try {
       setLoading(true)
+      setError(null)
       
       if (!user?.email) {
         setError('로그인이 필요합니다.')
@@ -103,14 +116,22 @@ export default function CoursesPage() {
         return
       }
 
+      console.log('🔍 강의 데이터 조회 시작...')
+      
       // 데이터베이스에서 강의 데이터 가져오기
       const response = await fetch('/api/courses')
+      console.log('📡 강의 API 응답:', { status: response.status, ok: response.ok })
+      
       if (!response.ok) {
-        throw new Error('강의 데이터를 가져오는데 실패했습니다.')
+        const errorData = await response.json()
+        throw new Error(errorData.error || '강의 데이터를 가져오는데 실패했습니다.')
       }
       
       const coursesData = await response.json()
-      const courses: Course[] = coursesData.courses || []
+      console.log('📦 강의 API 데이터:', coursesData)
+      
+      const courses: Course[] = coursesData.data?.courses || []
+      console.log('📚 조회된 강의 수:', courses.length)
 
       // 필터링 적용
       let filteredCourses = courses
@@ -148,9 +169,15 @@ export default function CoursesPage() {
         totalPages: Math.ceil(filteredCourses.length / itemsPerPage)
       })
 
-    } catch (error) {
-      console.error('강의 목록 로드 오류:', error)
-      setError('강의 목록을 불러오는 중 오류가 발생했습니다.')
+    } catch (error: any) {
+      console.error('❌ 강의 목록 로드 오류:', error)
+      setError(error.message || '강의 목록을 불러오는 중 오류가 발생했습니다.')
+      setCoursesData({
+        courses: [],
+        total: 0,
+        page: currentPage,
+        totalPages: 0
+      })
     } finally {
       setLoading(false)
     }
@@ -634,14 +661,14 @@ export default function CoursesPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
                       <Users className="w-4 h-4 mr-1 text-gray-400" />
-                      {course.student_count.toLocaleString()}
+                      {course.student_count?.toLocaleString() || '0'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
                       <Star className="w-4 h-4 mr-1 text-yellow-400" />
-                      {course.rating > 0 ? course.rating.toFixed(1) : '-'}
-                      <span className="text-gray-500 ml-1">({course.review_count})</span>
+                      {course.rating && course.rating > 0 ? course.rating.toFixed(1) : '-'}
+                      <span className="text-gray-500 ml-1">({course.review_count || 0})</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

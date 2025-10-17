@@ -60,9 +60,12 @@ export default function CreateCoursePage() {
     thumbnail_url: '',
     detail_image_url: ''
   })
+  const [customCategory, setCustomCategory] = useState('')
 
   const handleImageUpload = async (file: File, type: 'thumbnail' | 'detail') => {
     try {
+      console.log('📤 이미지 업로드 시작:', { fileName: file.name, type })
+      
       const formData = new FormData()
       formData.append('file', file)
       formData.append('type', type)
@@ -72,11 +75,20 @@ export default function CreateCoursePage() {
         body: formData
       })
 
+      console.log('📡 업로드 응답 상태:', response.status, response.ok)
+
       const data: UploadResponse = await response.json()
+      console.log('📦 업로드 응답 데이터:', data)
+
+      if (!response.ok) {
+        throw new Error(`HTTP 오류: ${response.status}`)
+      }
 
       if (!data.success || !data.url) {
         throw new Error(data.error || '이미지 업로드에 실패했습니다.')
       }
+
+      console.log('✅ 이미지 업로드 성공:', data.url)
 
       setForm(prev => ({
         ...prev,
@@ -85,8 +97,8 @@ export default function CreateCoursePage() {
 
       return data.url
     } catch (error) {
-      console.error('이미지 업로드 오류:', error)
-      setError('이미지 업로드 중 오류가 발생했습니다.')
+      console.error('❌ 이미지 업로드 오류:', error)
+      setError(`이미지 업로드 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
       return null
     }
   }
@@ -96,6 +108,41 @@ export default function CreateCoursePage() {
       ...prev,
       [field]: value
     }))
+  }
+
+  const handleCategoryChange = (value: string) => {
+    if (value === '기타') {
+      setForm(prev => ({ ...prev, category: '기타' }))
+    } else {
+      setForm(prev => ({ ...prev, category: value }))
+      setCustomCategory('')
+      
+      // 무료강의 선택 시 가격을 0으로 설정하고 추천 강의 해제
+      if (value === '무료강의') {
+        setForm(prev => ({ ...prev, price: 0, original_price: 0, is_featured: false }))
+      } else {
+        // 유료강의 선택 시 추천 강의 설정은 사용자가 직접 선택
+        // 기본값은 false로 설정 (사용자가 체크박스로 선택)
+        setForm(prev => ({ ...prev, is_featured: false }))
+      }
+    }
+  }
+
+  const handleCustomCategoryChange = (value: string) => {
+    setCustomCategory(value)
+    setForm(prev => ({ ...prev, category: value }))
+  }
+
+  const handleNumberFieldClick = (field: 'price' | 'original_price' | 'duration') => {
+    if (form[field] === 0) {
+      setForm(prev => ({ ...prev, [field]: '' }))
+    }
+  }
+
+  const handleNumberFieldBlur = (field: 'price' | 'original_price' | 'duration') => {
+    if (form[field] === '' || form[field] === null || form[field] === undefined) {
+      setForm(prev => ({ ...prev, [field]: 0 }))
+    }
   }
 
   const handleAddTag = () => {
@@ -137,6 +184,8 @@ export default function CreateCoursePage() {
     setError(null)
 
     try {
+      console.log('📤 강의 생성 요청 시작:', form)
+      
       // API 호출로 강의 생성
       const response = await fetch('/api/admin/courses/create', {
         method: 'POST',
@@ -146,18 +195,38 @@ export default function CreateCoursePage() {
         body: JSON.stringify(form)
       })
 
+      console.log('📡 API 응답 상태:', response.status, response.ok)
+      console.log('📡 API 응답 헤더:', Object.fromEntries(response.headers.entries()))
+
       const data = await response.json()
+      console.log('📦 API 응답 데이터:', JSON.stringify(data, null, 2))
+      console.log('📦 응답 데이터 타입:', typeof data)
+      console.log('📦 응답 데이터 키들:', Object.keys(data))
 
       if (!data.success) {
-        throw new Error(data.error || '강의 생성에 실패했습니다.')
+        console.error('❌ 강의 생성 오류 상세 정보:')
+        console.error('  - success:', data.success)
+        console.error('  - error:', data.error)
+        console.error('  - details:', data.details)
+        console.error('  - 전체 응답:', data)
+        
+        const errorMessage = data.error || '강의 생성에 실패했습니다.'
+        const detailsMessage = data.details ? ` (상세: ${JSON.stringify(data.details)})` : ''
+        throw new Error(errorMessage + detailsMessage)
       }
 
-      // 성공 시 강의 관리 페이지로 이동
-      router.push('/admin/courses')
+      // 성공 시 관리자 강의 목록 페이지로 이동 (새로고침을 위한 쿼리 파라미터 추가)
+      console.log('✅ 강의 생성 완료, 관리자 강의 목록 페이지로 이동')
+      alert('강의가 성공적으로 생성되었습니다!')
+      
+      // 강제 새로고침을 위해 페이지 리로드
+      console.log('✅ 강의 생성 성공! 페이지 새로고침 중...')
+      window.location.href = '/admin/courses?refresh=' + Date.now()
       
     } catch (error) {
       console.error('강의 생성 오류:', error)
-      setError('강의 생성 중 오류가 발생했습니다.')
+      const errorMessage = error instanceof Error ? error.message : '강의 생성 중 오류가 발생했습니다.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -349,8 +418,8 @@ export default function CreateCoursePage() {
                 카테고리
               </label>
               <select
-                value={form.category}
-                onChange={(e) => handleInputChange('category', e.target.value)}
+                value={form.category === '기타' ? '기타' : form.category}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="무료강의">무료강의</option>
@@ -358,7 +427,20 @@ export default function CreateCoursePage() {
                 <option value="디자인">디자인</option>
                 <option value="마케팅">마케팅</option>
                 <option value="비즈니스">비즈니스</option>
+                <option value="기타">기타</option>
               </select>
+              
+              {form.category === '기타' && (
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    value={customCategory}
+                    onChange={(e) => handleCustomCategoryChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="카테고리를 직접 입력하세요"
+                  />
+                </div>
+              )}
             </div>
 
             <div>
@@ -369,6 +451,8 @@ export default function CreateCoursePage() {
                 type="number"
                 value={form.duration}
                 onChange={(e) => handleInputChange('duration', parseInt(e.target.value) || 0)}
+                onClick={() => handleNumberFieldClick('duration')}
+                onBlur={() => handleNumberFieldBlur('duration')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 placeholder="0"
                 min="0"
@@ -395,60 +479,83 @@ export default function CreateCoursePage() {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">가격 설정</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                가격 (원)
-              </label>
-              <input
-                type="number"
-                value={form.price}
-                onChange={(e) => handleInputChange('price', parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="0"
-                min="0"
-              />
-              {form.price > 0 && (
-                <p className="text-sm text-gray-500 mt-1">
-                  {formatCurrency(form.price)}
-                </p>
-              )}
+          {form.category === '무료강의' ? (
+            <div className="bg-green-50 border border-green-200 rounded-md p-4">
+              <div className="flex items-center">
+                <div className="text-green-600 text-2xl mr-3">🆓</div>
+                <div>
+                  <h3 className="text-sm font-medium text-green-800">무료 강의</h3>
+                  <p className="text-sm text-green-700 mt-1">
+                    무료 강의로 설정되어 가격 입력이 비활성화됩니다.
+                  </p>
+                </div>
+              </div>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  가격 (원)
+                </label>
+                <input
+                  type="number"
+                  value={form.price}
+                  onChange={(e) => handleInputChange('price', parseInt(e.target.value) || 0)}
+                  onClick={() => handleNumberFieldClick('price')}
+                  onBlur={() => handleNumberFieldBlur('price')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                  min="0"
+                />
+                {form.price > 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {formatCurrency(form.price)}
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                정가 (원) - 할인 전 가격
-              </label>
-              <input
-                type="number"
-                value={form.original_price}
-                onChange={(e) => handleInputChange('original_price', parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="0"
-                min="0"
-              />
-              {form.original_price > 0 && (
-                <p className="text-sm text-gray-500 mt-1">
-                  {formatCurrency(form.original_price)}
-                </p>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  정가 (원) - 할인 전 가격
+                </label>
+                <input
+                  type="number"
+                  value={form.original_price}
+                  onChange={(e) => handleInputChange('original_price', parseInt(e.target.value) || 0)}
+                  onClick={() => handleNumberFieldClick('original_price')}
+                  onBlur={() => handleNumberFieldBlur('original_price')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0"
+                  min="0"
+                />
+                {form.original_price > 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {formatCurrency(form.original_price)}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="mt-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="is_featured"
-                checked={form.is_featured}
-                onChange={(e) => handleInputChange('is_featured', e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-900">
-                추천 강의로 설정
-              </label>
+          {form.category !== '무료강의' && (
+            <div className="mt-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="is_featured"
+                  checked={form.is_featured}
+                  onChange={(e) => handleInputChange('is_featured', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-900">
+                  추천 강의로 설정 (얼리버드 메인페이지에 표시)
+                </label>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                유료 강의는 클래스 카테고리에 표시됩니다. 추천 강의로 설정하면 얼리버드에도 동시 표시됩니다.
+              </p>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border">

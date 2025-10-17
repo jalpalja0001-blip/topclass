@@ -9,30 +9,28 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Clock, Users, Star, Play, ShoppingCart, CheckCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-interface Lesson {
-  id: string
-  title: string
-  description: string | null
-  duration: number
-  order: number
-}
 
 interface Course {
   id: string
   title: string
   description: string
+  instructor: string
   price: number
-  thumbnail: string | null
-  duration: number | null
+  original_price?: number
+  thumbnail_url?: string
+  detail_image_url?: string
+  duration: number
   level: string
-  category: {
-    id: string
-    name: string
-  }
-  lessons: Lesson[]
-  _count: {
-    purchases: number
-  }
+  category: string
+  status: string
+  published: boolean
+  is_featured: boolean
+  student_count: number
+  rating: number
+  review_count: number
+  tags: string[]
+  created_at: string
+  updated_at: string
 }
 
 export default function CourseDetailPage() {
@@ -54,11 +52,16 @@ export default function CourseDetailPage() {
 
   const fetchCourse = async () => {
     try {
-      const response = await fetch(`/api/courses/${courseId}`)
+      // 강의 목록 API를 사용하여 특정 강의 조회
+      const response = await fetch(`/api/courses`)
       const data = await response.json()
 
-      if (data.success) {
-        setCourse(data.data)
+      if (data.success && data.data.courses) {
+        // ID로 특정 강의 찾기
+        const foundCourse = data.data.courses.find((c: any) => c.id === courseId)
+        if (foundCourse) {
+          setCourse(foundCourse)
+        }
       }
     } catch (error) {
       console.error('Error fetching course:', error)
@@ -145,8 +148,7 @@ export default function CourseDetailPage() {
   }
 
   const getTotalDuration = () => {
-    if (!course?.lessons) return 0
-    return course.lessons.reduce((total, lesson) => total + lesson.duration, 0)
+    return course?.duration || 0
   }
 
   const getLevelText = (level: string) => {
@@ -229,9 +231,9 @@ export default function CourseDetailPage() {
           <div className="md:flex">
             <div className="md:w-1/2">
               <div className="h-64 md:h-full bg-gradient-to-r from-blue-500 to-purple-600 relative">
-                {course.thumbnail ? (
+                {course.thumbnail_url ? (
                   <img
-                    src={course.thumbnail}
+                    src={course.thumbnail_url}
                     alt={course.title}
                     className="w-full h-full object-cover"
                   />
@@ -245,7 +247,7 @@ export default function CourseDetailPage() {
             <div className="md:w-1/2 p-6">
               <div className="mb-4">
                 <span className="text-blue-600 text-sm font-medium">
-                  {course.category?.name || '무료강의'}
+                  {course.category || '무료강의'}
                 </span>
                 <span className={`ml-2 px-2 py-1 text-xs font-medium rounded ${getLevelBadgeColor(course.level)}`}>
                   {getLevelText(course.level)}
@@ -264,11 +266,11 @@ export default function CourseDetailPage() {
                 </div>
                 <div className="flex items-center">
                   <Users className="w-4 h-4 mr-1" />
-                  {course._count.purchases}명 수강
+                  {course.student_count}명 수강
                 </div>
                 <div className="flex items-center">
                   <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                  4.8 (234 리뷰)
+                  {course.rating > 0 ? `${course.rating.toFixed(1)} (${course.review_count} 리뷰)` : '리뷰 없음'}
                 </div>
               </div>
               <div className="text-3xl font-bold text-blue-600">
@@ -296,38 +298,57 @@ export default function CourseDetailPage() {
                 커리큘럼
               </h2>
               <div className="space-y-3">
-                {course.lessons.map((lesson, index) => (
-                  <div
-                    key={lesson.id}
-                    className="flex items-center p-4 border border-gray-200 rounded-lg"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm mr-4">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">
-                        {lesson.title}
-                      </h3>
-                      {lesson.description && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          {lesson.description}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {formatDuration(lesson.duration)}
-                    </div>
-                    {isPurchased && (
-                      <Link
-                        href={`/courses/${course.id}/lessons/${lesson.id}`}
-                        className="ml-4 text-blue-600 hover:text-blue-500"
-                      >
-                        <Play className="w-5 h-5" />
-                      </Link>
-                    )}
+                <div className="flex items-center p-4 border border-gray-200 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm mr-4">
+                    1
                   </div>
-                ))}
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">
+                      강의 소개 및 기초 개념
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      강의에 대한 전반적인 소개와 기본 개념을 학습합니다.
+                    </p>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {formatDuration(Math.floor(course.duration * 0.2))}
+                  </div>
+                </div>
+                <div className="flex items-center p-4 border border-gray-200 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm mr-4">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">
+                      실습 및 예제
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      실제 예제를 통해 핵심 내용을 학습합니다.
+                    </p>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {formatDuration(Math.floor(course.duration * 0.6))}
+                  </div>
+                </div>
+                <div className="flex items-center p-4 border border-gray-200 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm mr-4">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">
+                      마무리 및 정리
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      학습 내용을 정리하고 추가 학습 방향을 제시합니다.
+                    </p>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {formatDuration(Math.floor(course.duration * 0.2))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -349,7 +370,7 @@ export default function CourseDetailPage() {
                     구매 완료
                   </div>
                   <Link
-                    href={`/courses/${course.id}/lessons/${course.lessons[0]?.id}`}
+                    href={`/courses/${course.id}`}
                     className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
                   >
                     <Play className="w-5 h-5 mr-2" />
@@ -391,7 +412,7 @@ export default function CourseDetailPage() {
                 <ul className="space-y-2 text-sm text-gray-600">
                   <li className="flex items-center">
                     <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                    {course.lessons.length}개의 강의
+                    3개의 강의
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="w-4 h-4 text-green-500 mr-2" />

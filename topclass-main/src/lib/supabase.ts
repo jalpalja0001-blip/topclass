@@ -34,6 +34,12 @@ if (!finalUrl || !finalKey) {
   throw new Error('Supabase URL과 Key가 필요합니다.')
 }
 
+console.log('🔧 Supabase 설정:', {
+  url: finalUrl,
+  keyPrefix: finalKey.substring(0, 20) + '...',
+  hasEnvVars: !!(supabaseUrl && supabaseKey)
+})
+
 // Supabase 클라이언트 생성
 export const supabase = createClient(finalUrl, finalKey, {
   auth: {
@@ -42,6 +48,30 @@ export const supabase = createClient(finalUrl, finalKey, {
     detectSessionInUrl: true
   }
 })
+
+// createClient 함수 (API 라우트에서 사용)
+export function createClient() {
+  const { createClient: createSupabaseClient } = require('@supabase/supabase-js')
+  
+  // API 라우트에서도 같은 키 사용 (RLS 우회를 위해 서비스 키 우선 사용)
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || finalKey
+  
+  console.log('🔑 API용 Supabase 클라이언트 생성:', {
+    url: finalUrl,
+    hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    usingServiceKey: serviceKey !== finalKey,
+    keyPrefix: serviceKey.substring(0, 20) + '...',
+    isServiceRole: serviceKey.includes('service_role')
+  })
+  
+  return createSupabaseClient(finalUrl, serviceKey, {
+    auth: {
+      autoRefreshToken: serviceKey === finalKey, // anon 키일 때만 세션 관리
+      persistSession: serviceKey === finalKey,
+      detectSessionInUrl: serviceKey === finalKey
+    }
+  })
+}
 
 // 연결 테스트 함수
 export async function testSupabaseConnection() {

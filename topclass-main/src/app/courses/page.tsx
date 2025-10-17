@@ -11,18 +11,16 @@ interface Course {
   id: string
   title: string
   description: string
+  instructor: string
   price: number
-  thumbnail: string | null
-  duration: number | null
+  thumbnail_url?: string
+  duration: number
   level: string
-  category: {
-    id: string
-    name: string
-  }
-  _count: {
-    lessons: number
-    purchases: number
-  }
+  category?: string
+  status: string
+  published: boolean
+  created_at: string
+  is_featured?: boolean
 }
 
 interface CoursesData {
@@ -42,6 +40,18 @@ export default function CoursesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  
+  // 카테고리 옵션
+  const categories = [
+    { value: '', label: '전체' },
+    { value: '무료강의', label: '무료강의' },
+    { value: '얼리버드', label: '얼리버드' },
+    { value: '클래스', label: '클래스' },
+    { value: '프로그래밍', label: '프로그래밍' },
+    { value: '디자인', label: '디자인' },
+    { value: '마케팅', label: '마케팅' },
+    { value: '비즈니스', label: '비즈니스' }
+  ]
 
   const fetchCourses = async (category?: string, tag?: string) => {
     setLoading(true)
@@ -61,6 +71,13 @@ export default function CoursesPage() {
       const data = await response.json()
 
       console.log('API Response:', data) // 디버깅용
+      console.log('🔍 강의 목록 데이터:', data.data?.courses?.map(c => ({ 
+        id: c.id, 
+        title: c.title, 
+        category: c.category, 
+        is_featured: c.is_featured,
+        price: c.price 
+      })))
 
       if (data.success) {
         setCoursesData(data.data)
@@ -78,10 +95,18 @@ export default function CoursesPage() {
   useEffect(() => {
     const category = searchParams.get('category')
     const tag = searchParams.get('tag')
+    const refresh = searchParams.get('refresh')
     
-    console.log('URL params - category:', category, 'tag:', tag) // 디버깅용
+    console.log('URL params - category:', category, 'tag:', tag, 'refresh:', refresh) // 디버깅용
     
-    if (category) {
+    if (refresh) {
+      // 새로고침 파라미터가 있으면 강의 목록 새로고침
+      console.log('🔄 강의 목록 새로고침 요청')
+      fetchCourses('all')
+      // URL에서 refresh 파라미터 제거
+      const newUrl = window.location.pathname + (category ? `?category=${category}` : '')
+      window.history.replaceState({}, '', newUrl)
+    } else if (category) {
       setSelectedCategory(category)
       fetchCourses(category)
     } else if (tag) {
@@ -172,10 +197,16 @@ export default function CoursesPage() {
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            모든 강의
+            {selectedCategory === '무료강의' && '무료 강의'}
+            {selectedCategory === '얼리버드' && '얼리버드 추천 강의'}
+            {selectedCategory === '클래스' && '클래스 강의'}
+            {!selectedCategory && '모든 강의'}
           </h1>
           <p className="text-lg text-gray-600">
-            전문가들이 제작한 고품질 온라인 강의를 만나보세요
+            {selectedCategory === '무료강의' && '완전 무료로 제공되는 고품질 강의를 만나보세요'}
+            {selectedCategory === '얼리버드' && '추천 강의로 선별된 특별한 강의들을 만나보세요'}
+            {selectedCategory === '클래스' && '유료 강의로 제공되는 전문가 강의를 만나보세요'}
+            {!selectedCategory && '전문가들이 제작한 고품질 온라인 강의를 만나보세요'}
           </p>
         </div>
 
@@ -198,8 +229,9 @@ export default function CoursesPage() {
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">모든 카테고리</option>
-              <option value="무료강의">무료강의</option>
-              <option value="얼리버드">얼리버드</option>
+              <option value="무료강의">무료강의 (무료)</option>
+              <option value="얼리버드">얼리버드 (추천강의)</option>
+              <option value="클래스">클래스 (유료강의)</option>
               <option value="프로그래밍">프로그래밍</option>
               <option value="디자인">디자인</option>
               <option value="마케팅">마케팅</option>
@@ -238,29 +270,37 @@ export default function CoursesPage() {
                   className="group block"
                 >
                   <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
-                    {/* Course Thumbnail */}
+                    {/* Course Main Image */}
                     <div className="h-48 relative overflow-hidden">
-                      {course.thumbnail ? (
+                      {course.thumbnail_url ? (
                         <img
-                          src={course.thumbnail}
+                          src={course.thumbnail_url}
                           alt={course.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                           <div className="text-white text-center p-4">
-                            <div className="text-2xl font-bold mb-2">💡</div>
-                            <div className="text-sm font-medium line-clamp-2">{course.title}</div>
+                            <div className="text-4xl">💡</div>
                           </div>
                         </div>
                       )}
                       
-                      {/* Badges */}
-                      <div className="absolute top-3 left-3 flex flex-col gap-2">
+                      {/* Level Badge */}
+                      <div className="absolute top-3 left-3">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getLevelBadgeColor(course.level)}`}>
                           {getLevelText(course.level)}
                         </span>
                       </div>
+
+                      {/* Featured Badge */}
+                      {course.is_featured && (
+                        <div className="absolute top-3 right-3">
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                            ⭐ 추천
+                          </span>
+                        </div>
+                      )}
 
                       {/* Hover Play Button */}
                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -274,7 +314,7 @@ export default function CoursesPage() {
                     <div className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
-                          {course.category?.name || '무료강의'}
+                          {course.category || '무료강의'}
                         </span>
                         <div className="flex items-center text-xs text-gray-500">
                           <Star className="w-3 h-3 text-yellow-400 mr-1" />
@@ -290,17 +330,6 @@ export default function CoursesPage() {
                         {course.description}
                       </p>
 
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {['실무', '초보자환영', '평생시청'].map((tag, index) => (
-                          <span
-                            key={index}
-                            className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
 
                       {/* Stats */}
                       <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
@@ -311,7 +340,7 @@ export default function CoursesPage() {
                           </div>
                           <div className="flex items-center">
                             <Users className="w-4 h-4 mr-1" />
-                            {course._count.purchases}명
+                            {course.instructor}
                           </div>
                         </div>
                       </div>
@@ -320,20 +349,8 @@ export default function CoursesPage() {
                       <div className="flex items-center justify-between">
                         <div className="text-right">
                           {course.price > 0 ? (
-                            <div className="flex flex-col items-end">
-                              {course.originalPrice && (
-                                <div className="text-sm text-gray-500 line-through">
-                                  ₩{course.originalPrice.toLocaleString()}
-                                </div>
-                              )}
-                              <div className="text-xl font-bold text-orange-600">
-                                ₩{course.price.toLocaleString()}
-                              </div>
-                              {course.discount && (
-                                <div className="text-xs text-orange-500 font-medium">
-                                  {course.discount}% 할인
-                                </div>
-                              )}
+                            <div className="text-xl font-bold text-orange-600">
+                              ₩{course.price.toLocaleString()}
                             </div>
                           ) : (
                             <div className="text-xl font-bold text-green-600">
