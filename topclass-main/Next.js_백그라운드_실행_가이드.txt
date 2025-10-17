@@ -1,0 +1,75 @@
+========================================
+Next.js 서버 백그라운드 실행 가이드
+========================================
+
+📋 사전 준비사항
+- Windows 10/11 PowerShell
+- Next.js 프로젝트 설치 완료
+- 프로젝트 경로 확인 (예: C:\topclass\topclass-main)
+
+🔧 실행 단계
+
+1단계: PowerShell 열기
+- Windows + R → powershell 입력 → Enter
+- 또는 시작 메뉴 → "PowerShell" 검색
+
+2단계: 프로젝트 디렉토리로 이동
+cd C:\[프로젝트경로]
+
+예시:
+cd C:\topclass\topclass-main
+
+3단계: 정상 실행 테스트 (선택사항)
+npm run dev
+- 정상 실행 확인 후 Ctrl + C로 중단
+
+4단계: 백그라운드 실행 (핵심 명령어)
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location 'C:\[프로젝트경로]'; npm run dev" -WindowStyle Hidden
+
+실제 사용 예시:
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "Set-Location 'C:\topclass\topclass-main'; npm run dev" -WindowStyle Hidden
+
+========================================
+
+✅ 확인 방법
+
+브라우저 접속 테스트:
+- http://localhost:3000 접속 확인
+
+작업 관리자 확인:
+- Ctrl + Shift + Esc → 세부 정보 탭
+- node.exe 프로세스 실행 중 확인
+
+PowerShell 독립성 테스트:
+- 원래 PowerShell 창 닫기
+- 브라우저에서 여전히 접속 가능한지 확인
+
+========================================
+
+🛠️ 서버 관리
+
+서버 중단 방법:
+1. 작업 관리자 열기
+2. 세부 정보 탭에서 node.exe 찾기
+3. 작업 끝내기 클릭
+
+서버 재시작 방법:
+- 위의 4단계 백그라운드 실행 명령어 다시 실행
+
+========================================
+
+💡 주의사항
+- 컴퓨터 재부팅 시 서버 자동 중단
+- 프로젝트 경로는 정확히 입력
+- 작은따옴표와 큰따옴표 구분 주의
+
+🎯 장점
+- PowerShell 창 없이 서버 실행
+- 컴퓨터 재부팅 전까지 지속 실행
+- 회사 서버처럼 편리한 사용
+- 백그라운드에서 안정적 작동
+
+========================================
+작성일: 2025-09-22
+프로젝트: TopClass 온라인 교육 플랫폼
+========================================
