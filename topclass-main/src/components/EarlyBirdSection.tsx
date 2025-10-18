@@ -9,7 +9,7 @@ interface Course {
   title: string
   description: string
   price: number
-  originalPrice?: number
+  original_price?: number
   discountPercentage?: number
   category?: {
     name: string
@@ -19,6 +19,7 @@ interface Course {
   students: number
   rating: number
   imageUrl?: string
+  thumbnail_url?: string
 }
 
 interface CoursesData {
@@ -40,7 +41,7 @@ export default function EarlyBirdSection() {
   useEffect(() => {
     const fetchEarlyBirdCourses = async () => {
       try {
-        const response = await fetch('/api/courses?tag=얼리버드&limit=8')
+        const response = await fetch('/api/courses?category=클래스&limit=8')
         const data = await response.json()
         
         if (data.success) {
@@ -192,8 +193,8 @@ export default function EarlyBirdSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {visibleCourses.map((course) => (
               <Link key={course.id} href={`/courses/${course.id}`} className="block group">
-                <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 border-2 border-orange-200">
-                  <div className="aspect-square relative overflow-hidden">
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 border-2 border-orange-200 h-full flex flex-col">
+                  <div className="aspect-square relative overflow-hidden flex-shrink-0">
                     {course.thumbnail_url ? (
                       <img
                         src={course.thumbnail_url}
@@ -201,21 +202,25 @@ export default function EarlyBirdSection() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center">
-                        <div className="text-white text-4xl">📚</div>
+                      <div className="w-full h-full bg-gradient-to-r from-orange-400 to-red-500">
                       </div>
                     )}
-                    <div className="absolute top-3 left-3 bg-white text-orange-600 px-2 py-1 rounded-full text-xs font-bold">
-                      얼리버드 {course.discountPercentage}%
-                    </div>
                   </div>
                   <div className="p-4">
+                    {/* 가격 정보 - 왼쪽 위 원래 자리 */}
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-500 line-through">
-                        ₩{course.originalPrice?.toLocaleString() || '200,000'}
+                      <div>
+                        <div className="text-sm text-gray-500 line-through">
+                          ₩{course.original_price && course.original_price > course.price ? course.original_price.toLocaleString() : '200,000'}
+                        </div>
+                        <div className="text-xl font-bold text-orange-600">
+                          ₩{course.price.toLocaleString()}
+                        </div>
                       </div>
-                      <div className="text-xl font-bold text-orange-600">
-                        ₩{course.price.toLocaleString()}
+                      {/* 평점 - 더 위로 */}
+                      <div className="flex items-center text-xs text-gray-400 -mt-1">
+                        <span className="text-yellow-500">★</span>
+                        <span className="ml-1">4.8</span>
                       </div>
                     </div>
                     
@@ -230,22 +235,13 @@ export default function EarlyBirdSection() {
                     </div>
                     
                     <div className="mt-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs text-center">
-                      🔥 한정 특가! 7일 남음
+                      🔥 한정 특가!
                     </div>
                     <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
                       <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">
                         {course.level === 'beginner' ? '초급' : course.level === 'intermediate' ? '중급' : '고급'}
                       </span>
-                      <span>{course.duration}</span>
-                    </div>
-                    
-                    {/* 수강생 수와 평점 */}
-                    <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
-                      <span>{course.students}명 수강</span>
-                      <div className="flex items-center">
-                        <span className="text-yellow-500">★</span>
-                        <span className="ml-1">{course.rating}</span>
-                      </div>
+                      <span>{typeof course.duration === 'string' ? course.duration : `${course.duration || 60}분`}</span>
                     </div>
                   </div>
                 </div>

@@ -13,6 +13,7 @@ interface Course {
   description: string
   instructor: string
   price: number
+  original_price?: number
   thumbnail_url?: string
   duration: number
   level: string
@@ -269,9 +270,9 @@ export default function CoursesPage() {
                   href={`/courses/${course.id}`}
                   className="group block"
                 >
-                  <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
+                  <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 h-full flex flex-col border-2 border-gray-200">
                     {/* Course Main Image */}
-                    <div className="aspect-square relative overflow-hidden">
+                    <div className="aspect-square relative overflow-hidden flex-shrink-0">
                       {course.thumbnail_url ? (
                         <img
                           src={course.thumbnail_url}
@@ -309,7 +310,7 @@ export default function CoursesPage() {
                     </div>
 
                     {/* Course Info */}
-                    <div className="p-4">
+                    <div className="p-4 flex-1 flex flex-col">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
                           {course.category || '무료강의'}
@@ -320,14 +321,16 @@ export default function CoursesPage() {
                         </div>
                       </div>
 
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
-                        {course.title}
-                      </h3>
-                      
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">
-                        {course.description}
-                      </p>
-
+                      {/* 제목과 설명 - 고정 높이 영역 */}
+                      <div className="flex-1 mb-3">
+                        <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors h-8">
+                          {course.title}
+                        </h3>
+                        
+                        <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed h-6">
+                          {course.description}
+                        </p>
+                      </div>
 
                       {/* Stats */}
                       <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
@@ -343,18 +346,32 @@ export default function CoursesPage() {
                         </div>
                       </div>
 
-                      {/* Price */}
+                      {/* Price - 고정 높이로 카드 크기 통일 */}
                       <div className="flex items-center justify-between">
-                        <div className="text-right">
-                          {course.price > 0 ? (
-                            <div className="text-xl font-bold text-orange-600">
-                              ₩{course.price.toLocaleString()}
-                            </div>
-                          ) : (
-                            <div className="text-xl font-bold text-green-600">
-                              무료
-                            </div>
-                          )}
+                        <div className="flex-1">
+                          <div className="flex flex-col h-8 justify-end">
+                            {course.price > 0 ? (
+                              <>
+                                {course.original_price && course.original_price > course.price ? (
+                                  <div className="text-sm text-gray-500 line-through">
+                                    ₩{course.original_price.toLocaleString()}
+                                  </div>
+                                ) : (
+                                  <div className="h-5"></div>
+                                )}
+                                <div className="text-xl font-bold text-orange-600">
+                                  ₩{course.price.toLocaleString()}
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="h-5"></div>
+                                <div className="text-xl font-bold text-green-600">
+                                  무료
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </div>
                         <button className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors">
                           {course.price > 0 ? '구매하기' : '수강신청'}

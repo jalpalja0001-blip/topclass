@@ -42,3 +42,35 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
   return NextResponse.json({ success: true });
 }
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const id = params.id;
+
+  try {
+    // 강의 삭제
+    const { error } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('강의 삭제 오류:', error);
+      return NextResponse.json({ 
+        success: false, 
+        message: error.message || '강의 삭제에 실패했습니다.' 
+      }, { status: 400 });
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: '강의가 성공적으로 삭제되었습니다.' 
+    });
+
+  } catch (error: any) {
+    console.error('강의 삭제 중 오류:', error);
+    return NextResponse.json({ 
+      success: false, 
+      message: '강의 삭제 중 오류가 발생했습니다.' 
+    }, { status: 500 });
+  }
+}

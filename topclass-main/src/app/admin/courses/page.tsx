@@ -354,24 +354,52 @@ export default function CoursesPage() {
     setShowDeleteModal(true)
   }
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!editingCourse) return
     
-    // 실제로는 API 호출로 강의 삭제
-    console.log('강의 삭제:', editingCourse.id)
-    
-    // 더미 데이터에서 제거
-    setCoursesData(prev => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        courses: prev.courses.filter(course => course.id !== editingCourse.id),
-        total: prev.total - 1
+    try {
+      // 실제 API 호출로 강의 삭제
+      console.log('강의 삭제 시작:', editingCourse.id)
+      
+      const response = await fetch(`/api/admin/courses/${editingCourse.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.message || '강의 삭제에 실패했습니다.')
       }
-    })
-    
-    setShowDeleteModal(false)
-    setEditingCourse(null)
+      
+      console.log('강의 삭제 성공:', editingCourse.id)
+      
+      // 성공시 프론트엔드 상태에서도 제거
+      setCoursesData(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          courses: prev.courses.filter(course => course.id !== editingCourse.id),
+          total: prev.total - 1
+        }
+      })
+      
+      // 모달 닫기
+      setShowDeleteModal(false)
+      setEditingCourse(null)
+      
+      // 성공 메시지
+      alert('강의가 성공적으로 삭제되었습니다.')
+      
+      // 강의 목록 새로고침 (최신 상태 반영)
+      await fetchCourses()
+      
+    } catch (error: any) {
+      console.error('강의 삭제 오류:', error)
+      alert(error.message || '강의 삭제 중 오류가 발생했습니다.')
+    }
   }
 
   if (loading) {

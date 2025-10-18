@@ -9,6 +9,7 @@ interface Course {
   title: string
   description: string
   price: number
+  original_price?: number
   duration: number | null
   level: string
   category: {
@@ -55,6 +56,7 @@ export default function FreeCourseSection() {
               title: '[파파준스] 나만의 AI 사진작가로 월300 버는 올인원 무료강의',
               description: 'AI 기술을 활용한 사진작가로 월 300만원을 벌 수 있는 실전 노하우를 무료로 배워보세요.',
               price: 0,
+              original_price: 199000,
               duration: 90,
               level: 'beginner',
               category: { name: '무료강의' },
@@ -65,6 +67,7 @@ export default function FreeCourseSection() {
               title: '[내일은편하게] 0원으로 초보자도 추가 월급 벌기 무료강의',
               description: '투자 없이도 시작할 수 있는 다양한 부업 방법을 배워보세요.',
               price: 0,
+              original_price: 149000,
               duration: 120,
               level: 'beginner',
               category: { name: '무료강의' },
@@ -75,6 +78,7 @@ export default function FreeCourseSection() {
               title: '[광마] 주부도 억대 매출 낸 AI쿠팡로켓 수익화 무료강의',
               description: 'AI를 활용한 쿠팡로켓 수익화 방법을 배워보세요.',
               price: 0,
+              original_price: 299000,
               duration: 100,
               level: 'beginner',
               category: { name: '무료강의' },
@@ -85,6 +89,7 @@ export default function FreeCourseSection() {
               title: '[홍시삼분] 노베이스 초보자도 가능! AI 자동화 해외구매대행 무료강의',
               description: 'AI 자동화를 활용한 해외구매대행 사업을 시작해보세요.',
               price: 0,
+              original_price: 179000,
               duration: 110,
               level: 'beginner',
               category: { name: '무료강의' },
@@ -101,6 +106,7 @@ export default function FreeCourseSection() {
             title: '[파파준스] 나만의 AI 사진작가로 월300 버는 올인원 무료강의',
             description: 'AI 기술을 활용한 사진작가로 월 300만원을 벌 수 있는 실전 노하우를 무료로 배워보세요.',
             price: 0,
+            original_price: 199000,
             duration: 90,
             level: 'beginner',
             category: { name: '무료강의' },
@@ -198,9 +204,9 @@ export default function FreeCourseSection() {
                     style={{ width: `${100 / freeCourses.length}%` }}
                   >
                     <Link href={`/courses/${course.id}`} className="block group">
-                      <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
+                      <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 h-full flex flex-col border-2 border-blue-200">
                         {/* Course Image */}
-                        <div className="aspect-square relative overflow-hidden">
+                        <div className="aspect-square relative overflow-hidden flex-shrink-0">
                           {course.thumbnail_url ? (
                             <img
                               src={course.thumbnail_url}
@@ -231,15 +237,42 @@ export default function FreeCourseSection() {
                         </div>
 
                         {/* Course Info */}
-                        <div className="p-4">
+                        <div className="p-4 flex-1 flex flex-col">
                           <div className="text-xs text-blue-600 mb-2">{course.category?.name || '무료강의'}</div>
-                          <h3 className="font-semibold text-gray-900 mb-3 line-clamp-2 leading-tight">
-                            {course.title}
-                          </h3>
                           
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                            {course.description}
-                          </p>
+                          {/* 제목과 설명 - 고정 높이 영역 */}
+                          <div className="flex-1 mb-3">
+                            <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight h-8">
+                              {course.title}
+                            </h3>
+                            
+                            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed h-6">
+                              {course.description}
+                            </p>
+                          </div>
+
+                          {/* 가격 정보 - 고정 높이 */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex flex-col h-8 justify-end w-full">
+                              {course.original_price && course.original_price > 0 ? (
+                                <>
+                                  <div className="text-sm text-gray-500 line-through">
+                                    ₩{course.original_price.toLocaleString()}
+                                  </div>
+                                  <div className="text-xl font-bold text-blue-600">
+                                    무료
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="h-5"></div>
+                                  <div className="text-xl font-bold text-blue-600">
+                                    무료
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
 
                           {/* Stats */}
                           <div className="flex items-center justify-between text-sm text-gray-500 mb-3">

@@ -38,6 +38,12 @@ export async function GET(request: NextRequest) {
       console.log('🎯 무료강의 필터 적용: 무료강의만 표시')
     }
 
+    // 태그 필터 추가
+    if (tag) {
+      query = query.contains('tags', [tag])
+      console.log('🏷️ 태그 필터 적용:', tag)
+    }
+
     // 검색 필터 (실제 테이블 스키마에 맞게 수정)
     if (search) {
       query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
@@ -73,6 +79,10 @@ export async function GET(request: NextRequest) {
       countQuery = countQuery.eq('price', 0)
     }
 
+    if (tag) {
+      countQuery = countQuery.contains('tags', [tag])
+    }
+
     if (search) {
       countQuery = countQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
     }
@@ -92,6 +102,7 @@ export async function GET(request: NextRequest) {
           category: c.category || c.categories?.name || '-',
           status: c.status || (c.published === true ? '공개' : '초안'),
           detail_image_url: c.detail_image_url || '', // 확실히 포함!
+          original_price: c.original_price || null, // original_price 포함
         })),
         pagination: {
           page,
