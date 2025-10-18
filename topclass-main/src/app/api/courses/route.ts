@@ -18,12 +18,11 @@ export async function GET(request: NextRequest) {
     
     const supabase = createClient()
     
-    // Supabase 쿼리 빌더 시작 (실제 테이블 스키마에 맞게 수정)
+    // Supabase 쿼리 빌더: category_id로 categories 테이블의 name 조인
     let query = supabase
       .from('courses')
-      .select('*')
-      // published 컬럼이 없으므로 제거
-      // .eq('published', true)
+      .select('*, categories(name)') // detail_image_url 포함, *로 안전하게 유지
+      .range(offset, offset + limit - 1)
 
     // 특별한 카테고리 처리 (실제 테이블 스키마에 맞게)
     if (category === '얼리버드') {
@@ -43,9 +42,6 @@ export async function GET(request: NextRequest) {
     if (search) {
       query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
     }
-
-    // 페이지네이션
-    query = query.range(offset, offset + limit - 1)
 
     const { data: courses, error } = await query
 
@@ -87,10 +83,16 @@ export async function GET(request: NextRequest) {
     console.log('📚 조회된 강의 수:', courses?.length || 0)
     console.log('🔍 조회된 강의 목록:', courses?.map(c => ({ id: c.id, title: c.title, category: c.category, is_featured: c.is_featured })))
       
+    // 반환 시 detail_image_url도 그대로 전달
     return NextResponse.json({
       success: true,
       data: {
-        courses: courses || [],
+        courses: (courses || []).map((c: any) => ({
+          ...c,
+          category: c.category || c.categories?.name || '-',
+          status: c.status || (c.published === true ? '공개' : '초안'),
+          detail_image_url: c.detail_image_url || '', // 확실히 포함!
+        })),
         pagination: {
           page,
           limit,

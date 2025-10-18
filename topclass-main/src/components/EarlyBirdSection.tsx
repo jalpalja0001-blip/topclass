@@ -193,13 +193,20 @@ export default function EarlyBirdSection() {
             {visibleCourses.map((course) => (
               <Link key={course.id} href={`/courses/${course.id}`} className="block group">
                 <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 border-2 border-orange-200">
-                  <div className="h-48 bg-gradient-to-r from-orange-400 to-red-500 relative">
+                  <div className="aspect-square relative overflow-hidden">
+                    {course.thumbnail_url ? (
+                      <img
+                        src={course.thumbnail_url}
+                        alt={course.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center">
+                        <div className="text-white text-4xl">📚</div>
+                      </div>
+                    )}
                     <div className="absolute top-3 left-3 bg-white text-orange-600 px-2 py-1 rounded-full text-xs font-bold">
                       얼리버드 {course.discountPercentage}%
-                    </div>
-                    <div className="absolute bottom-3 left-3 text-white">
-                      <div className="text-sm opacity-90">{course.category?.name || '마케팅'}</div>
-                      <div className="font-bold text-sm">{course.title}</div>
                     </div>
                   </div>
                   <div className="p-4">

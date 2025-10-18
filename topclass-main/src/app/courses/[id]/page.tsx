@@ -231,7 +231,13 @@ export default function CourseDetailPage() {
           <div className="md:flex">
             <div className="md:w-1/2">
               <div className="h-64 md:h-full bg-gradient-to-r from-blue-500 to-purple-600 relative">
-                {course.thumbnail_url ? (
+                {course.detail_image_url ? (
+                  <img
+                    src={course.detail_image_url}
+                    alt={course.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : course.thumbnail_url ? (
                   <img
                     src={course.thumbnail_url}
                     alt={course.title}
@@ -284,9 +290,7 @@ export default function CourseDetailPage() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                강의 소개
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">강의 소개</h2>
               <div className="prose max-w-none">
                 <p>{course.description}</p>
               </div>

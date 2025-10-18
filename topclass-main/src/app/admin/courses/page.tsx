@@ -30,6 +30,7 @@ import {
   Pause,
   EyeOff
 } from 'lucide-react'
+import CourseForm, { CourseFormData } from './components/CourseForm'
 
 interface Course {
   id: string
@@ -216,7 +217,7 @@ export default function CoursesPage() {
     }
   }
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: string | undefined) => {
     switch (status) {
       case 'published': return '공개'
       case 'draft': return '초안'
@@ -241,6 +242,11 @@ export default function CoursesPage() {
       case 'advanced': return '고급'
       default: return '알 수 없음'
     }
+  }
+
+  const formatCategory = (category: string | undefined) => {
+    if (!category || category === '-') return '-';
+    return category === '무료강의' ? '무료강의' : '유료강의';
   }
 
   const handleCardClick = (filterType: string) => {
@@ -313,28 +319,35 @@ export default function CoursesPage() {
     setShowEditModal(true)
   }
 
-  const handleSaveEdit = () => {
-    if (!editingCourse) return
-    
-    // 실제로는 API 호출로 강의 정보 업데이트
-    console.log('강의 정보 업데이트:', editingCourse.id, editForm)
-    
-    // 더미 데이터 업데이트
-    setCoursesData(prev => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        courses: prev.courses.map(course => 
-          course.id === editingCourse.id 
-            ? { ...course, ...editForm, updated_at: new Date().toISOString() }
-            : course
-        )
-      }
-    })
-    
-    setShowEditModal(false)
-    setEditingCourse(null)
-  }
+  // 수정 저장 처리 함수 실제 DB 반영
+  const handleSaveEdit = async (form: CourseFormData) => {
+    if (!editingCourse) return;
+    try {
+      // DB에 실제로 저장
+      const response = await fetch(`/api/admin/courses/${editingCourse.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message || '수정 실패');
+      // 프론트 상태도 반영 (option)
+      setCoursesData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          courses: prev.courses.map(course =>
+            course.id === editingCourse.id ? { ...course, ...form, updated_at: new Date().toISOString() } : course
+          )
+        };
+      });
+      setShowEditModal(false);
+      setEditingCourse(null);
+      alert('수정 완료!');
+    } catch (e: any) {
+      alert(e.message || '수정 오류');
+    }
+  };
 
   const handleDeleteCourse = (course: Course) => {
     setEditingCourse(course)
@@ -577,15 +590,9 @@ export default function CoursesPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  강의 정보
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  강사
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  카테고리
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">강의명</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">강사</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">카테고리</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   가격
                 </th>
@@ -608,10 +615,12 @@ export default function CoursesPage() {
                 <tr key={course.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-12 w-12">
-                        <div className="h-12 w-12 rounded-lg bg-gray-300 flex items-center justify-center">
-                          <BookOpen className="w-6 h-6 text-gray-600" />
-                        </div>
+                      <div className="w-16 h-16 aspect-square rounded-md bg-gray-100 overflow-hidden flex items-center justify-center">
+                        {course.thumbnail_url ? (
+                          <img src={course.thumbnail_url} alt={course.title} className="object-cover w-full h-full" />
+                        ) : (
+                          <span className="text-gray-300">No image</span>
+                        )}
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900 flex items-center">
@@ -630,11 +639,11 @@ export default function CoursesPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {course.instructor}
+                    {course.instructor ?? '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                      {course.category}
+                      {formatCategory(course.category ?? '-')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -654,9 +663,12 @@ export default function CoursesPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(course.status)}`}>
-                      {getStatusLabel(course.status)}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(course.status ?? 'draft')}`}>
+                      {getStatusLabel(course.status ?? undefined)}
                     </span>
+                    {course.is_featured && (
+                      <span className="ml-2 inline-flex items-center px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">★ 추천</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
@@ -815,18 +827,18 @@ export default function CoursesPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">상태</label>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(selectedCourse.status)}`}>
-                    {getStatusLabel(selectedCourse.status)}
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(selectedCourse.status ?? 'draft')}`}>
+                    {getStatusLabel(selectedCourse.status ?? undefined)}
                   </span>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">수강생 수</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedCourse.student_count.toLocaleString()}명</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedCourse.student_count?.toLocaleString() || '0'}명</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">평점</label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {selectedCourse.rating > 0 ? `${selectedCourse.rating.toFixed(1)} (${selectedCourse.review_count}개 리뷰)` : '리뷰 없음'}
+                    {selectedCourse.rating && selectedCourse.rating > 0 ? `${selectedCourse.rating.toFixed(1)} (${selectedCourse.review_count}개 리뷰)` : '리뷰 없음'}
                   </p>
                 </div>
                 <div>
@@ -856,7 +868,7 @@ export default function CoursesPage() {
       {/* 강의 수정 모달 */}
       {showEditModal && editingCourse && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-[520px] max-w-full shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900">강의 정보 수정</h3>
@@ -867,121 +879,20 @@ export default function CoursesPage() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">강의명</label>
-                  <input
-                    type="text"
-                    value={editForm.title}
-                    onChange={(e) => setEditForm({...editForm, title: e.target.value})}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">설명</label>
-                  <textarea
-                    value={editForm.description}
-                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                    rows={3}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">강사</label>
-                  <input
-                    type="text"
-                    value={editForm.instructor}
-                    onChange={(e) => setEditForm({...editForm, instructor: e.target.value})}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">카테고리</label>
-                  <select
-                    value={editForm.category}
-                    onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="무료강의">무료강의</option>
-                    <option value="프로그래밍">프로그래밍</option>
-                    <option value="디자인">디자인</option>
-                    <option value="마케팅">마케팅</option>
-                  </select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">가격</label>
-                    <input
-                      type="number"
-                      value={editForm.price}
-                      onChange={(e) => setEditForm({...editForm, price: parseInt(e.target.value) || 0})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">수강 시간(분)</label>
-                    <input
-                      type="number"
-                      value={editForm.duration}
-                      onChange={(e) => setEditForm({...editForm, duration: parseInt(e.target.value) || 0})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">레벨</label>
-                    <select
-                      value={editForm.level}
-                      onChange={(e) => setEditForm({...editForm, level: e.target.value as 'beginner' | 'intermediate' | 'advanced'})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="beginner">초급</option>
-                      <option value="intermediate">중급</option>
-                      <option value="advanced">고급</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">상태</label>
-                    <select
-                      value={editForm.status}
-                      onChange={(e) => setEditForm({...editForm, status: e.target.value as 'published' | 'draft' | 'archived'})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="published">공개</option>
-                      <option value="draft">초안</option>
-                      <option value="archived">보관</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="is_featured"
-                    checked={editForm.is_featured}
-                    onChange={(e) => setEditForm({...editForm, is_featured: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-900">
-                    추천 강의로 설정
-                  </label>
-                </div>
-              </div>
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={handleSaveEdit}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 flex items-center"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  저장
-                </button>
-              </div>
+              <CourseForm
+                mode="edit"
+                initialData={{
+                  ...editingCourse,
+                  tags: editingCourse.tags || [],
+                  thumbnail_url: editingCourse.thumbnail_url || editingCourse.thumbnail || '',
+                  original_price: editingCourse.original_price || 0,
+                  price: editingCourse.price || 0,
+                  detail_image_url: editingCourse.detail_image_url || '', // <--- 보장!
+                }}
+                onSubmit={handleSaveEdit}
+                loading={false}
+                onCancel={() => setShowEditModal(false)}
+              />
             </div>
           </div>
         </div>

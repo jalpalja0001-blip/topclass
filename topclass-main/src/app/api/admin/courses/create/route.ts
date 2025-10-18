@@ -52,10 +52,16 @@ export async function POST(request: Request) {
     const courseData = {
       title: data.title,
       description: data.description || '',
+      instructor: data.instructor || '',
+      category: data.category || '', // 카테고리명 그대로 저장
+      status: data.status || 'draft', // 상태 문자열 그대로 저장 (published, draft, archived)
       price: isFreeCourse ? 0 : (data.price || 0),
-      thumbnail: data.thumbnail_url || null,
+      original_price: isFreeCourse ? 0 : (data.original_price || 0),
+      tags: data.tags || [],
+      thumbnail_url: data.thumbnail_url || null,
       duration: data.duration || null,
       level: data.level || 'beginner',
+      is_featured: data.is_featured || false,
       published: data.status === 'published' || false
     }
 

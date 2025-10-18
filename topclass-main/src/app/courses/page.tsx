@@ -271,7 +271,7 @@ export default function CoursesPage() {
                 >
                   <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
                     {/* Course Main Image */}
-                    <div className="h-48 relative overflow-hidden">
+                    <div className="aspect-square relative overflow-hidden">
                       {course.thumbnail_url ? (
                         <img
                           src={course.thumbnail_url}
@@ -280,9 +280,7 @@ export default function CoursesPage() {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                          <div className="text-white text-center p-4">
-                            <div className="text-4xl">💡</div>
-                          </div>
+                          <div className="text-white text-4xl">📚</div>
                         </div>
                       )}
                       

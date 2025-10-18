@@ -200,10 +200,23 @@ export default function FreeCourseSection() {
                     <Link href={`/courses/${course.id}`} className="block group">
                       <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1">
                         {/* Course Image */}
-                        <div
-                          className="h-48 relative"
-                          style={{ background: gradients[index % gradients.length] }}
-                        >
+                        <div className="aspect-square relative overflow-hidden">
+                          {course.thumbnail_url ? (
+                            <img
+                              src={course.thumbnail_url}
+                              alt={course.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div
+                              className="w-full h-full relative"
+                              style={{ background: gradients[index % gradients.length] }}
+                            >
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-white text-4xl">📚</div>
+                              </div>
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
                           <div className="absolute top-3 left-3">
                             <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -213,11 +226,6 @@ export default function FreeCourseSection() {
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <div className="bg-white/90 rounded-full p-3">
                               <Play className="w-6 h-6 text-blue-600" />
-                            </div>
-                          </div>
-                          <div className="absolute bottom-3 left-3 right-3">
-                            <div className="text-white text-sm font-medium line-clamp-2">
-                              {course.title}
                             </div>
                           </div>
                         </div>

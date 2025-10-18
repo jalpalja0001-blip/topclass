@@ -180,7 +180,7 @@ export default function InstructorSection() {
                 <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group-hover:-translate-y-2">
                   {/* Instructor Avatar */}
                   <div
-                    className="h-32 relative flex items-center justify-center"
+                    className="aspect-square relative flex items-center justify-center"
                     style={{ background: instructor.background }}
                   >
                     <div className="text-4xl">{instructor.avatar}</div>
