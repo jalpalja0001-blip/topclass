@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "playwright-custom": {
+      "command": "node",
+      "args": [
+        "C:\\cursor_test\\mcp-playwright-server\\dist\\index.js"
+      ],
+      "cwd": "C:\\cursor_test",
+      "env": {}
+    },
+    "shadcn-ui": {
+      "command": "npx",
+      "args": [
+        "@jpisnice/shadcn-ui-mcp-server"
+      ],
+      "env": {}
+    },
+    "tailwind-css": {
+      "command": "node",
+      "args": [
+        "C:\\cursor_test\\mcp-tailwind-server\\dist\\index.js"
+      ],
+      "cwd": "C:\\cursor_test",
+      "env": {}
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {}
+    }
+  }
+}
