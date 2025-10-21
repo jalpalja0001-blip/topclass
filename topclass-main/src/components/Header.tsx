@@ -110,7 +110,7 @@ export default function Header() {
             {user ? (
               <div className="flex items-center space-x-4">
                 <Link 
-                  href="/dashboard"
+                  href="/my-courses"
                   className="flex items-center text-gray-700 hover:text-blue-600 transition-colors"
                 >
                   <User className="w-5 h-5 mr-1" />
@@ -172,6 +172,12 @@ export default function Header() {
               <Link href="/ebooks" className="block text-gray-700 hover:text-blue-600">전자책</Link>
               <Link href="/community" className="block text-gray-700 hover:text-blue-600">커뮤니티</Link>
               <Link href="/notices" className="block text-gray-700 hover:text-blue-600">공지사항</Link>
+              {user && (
+                <Link href="/my-courses" className="block text-gray-700 hover:text-blue-600 flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  내 강의
+                </Link>
+              )}
               {!adminLoading && isAdmin && (
                 <Link href="/admin" className="block text-gray-700 hover:text-blue-600 flex items-center">
                   <Settings className="w-4 h-4 mr-2" />

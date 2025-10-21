@@ -41,6 +41,7 @@ interface Course {
   price: number
   original_price?: number
   thumbnail_url?: string
+  video_url?: string // video_url 필드 추가
   duration: number // 분 단위
   level: 'beginner' | 'intermediate' | 'advanced'
   status: 'published' | 'draft' | 'archived'
@@ -915,7 +916,8 @@ export default function CoursesPage() {
                   thumbnail_url: editingCourse.thumbnail_url || editingCourse.thumbnail || '',
                   original_price: editingCourse.original_price || 0,
                   price: editingCourse.price || 0,
-                  detail_image_url: editingCourse.detail_image_url || '', // <--- 보장!
+                  detail_image_url: editingCourse.detail_image_url || '',
+                  video_url: editingCourse.video_url || '', // video_url 필드 추가
                 }}
                 onSubmit={handleSaveEdit}
                 loading={false}

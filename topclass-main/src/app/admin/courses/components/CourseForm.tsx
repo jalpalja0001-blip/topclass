@@ -15,6 +15,8 @@ export interface CourseFormData {
   tags: string[]; // text[]
   thumbnail_url: string; // 썸네일 이미지 URL
   detail_image_url: string; // 상세이미지, courses에 저장X
+  video_url: string; // 동영상 URL 또는 임베드 코드
+  vimeo_url: string; // Vimeo 임베드 URL
 }
 
 interface Props {
@@ -40,7 +42,9 @@ export default function CourseForm({ mode, initialData, onSubmit, loading, onCan
       is_featured: false,
       tags: [],
       thumbnail_url: '',
-      detail_image_url: ''
+      detail_image_url: '',
+      video_url: '',
+      vimeo_url: ''
     }
   );
   const [customCategory, setCustomCategory] = useState('');
@@ -84,6 +88,28 @@ export default function CourseForm({ mode, initialData, onSubmit, loading, onCan
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleVideoFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // 파일 크기 검증 (50MB 제한 - 무료 플랜)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        setError('파일 크기가 너무 큽니다. 무료 플랜에서는 최대 50MB까지 업로드 가능합니다. 비디오를 압축하거나 Pro 플랜으로 업그레이드해주세요.');
+        return;
+      }
+
+      // 파일 타입 검증
+      const allowedTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('지원하지 않는 파일 형식입니다. MP4, WebM, OGG 파일만 업로드 가능합니다.');
+        return;
+      }
+
+      setForm(prev => ({ ...prev, video_file: file }));
+      setError(null);
+    }
+  };
+
   const handleCategoryChange = (value: string) => {
     if (value === '기타') {
       setForm(prev => ({ ...prev, category: '기타' }));
@@ -117,15 +143,32 @@ export default function CourseForm({ mode, initialData, onSubmit, loading, onCan
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim()) return setError('강의명을 입력해주세요.');
-    if (!form.description.trim()) return setError('강의 설명을 입력해주세요.');
-    if (!form.instructor.trim()) return setError('강사명을 입력해주세요.');
+    console.log('🔥 폼 제출 시도:', form);
+    
+    // 필수 필드 검증
+    if (!form.title.trim()) {
+      console.log('❌ 강의명 누락');
+      return setError('강의명을 입력해주세요.');
+    }
+    if (!form.description.trim()) {
+      console.log('❌ 강의 설명 누락');
+      return setError('강의 설명을 입력해주세요.');
+    }
+    if (!form.instructor.trim()) {
+      console.log('❌ 강사명 누락');
+      return setError('강사명을 입력해주세요.');
+    }
+    
+    console.log('✅ 폼 검증 통과');
     setError(null);
+    
     // customCategory 입력이 있으면 카테고리에 반영
     const submitData = {
       ...form,
       category: (form.category === '기타' && customCategory) ? customCategory : form.category
     };
+    
+    console.log('📤 제출할 데이터:', submitData);
     onSubmit(submitData);
   };
 
@@ -280,6 +323,45 @@ export default function CourseForm({ mode, initialData, onSubmit, loading, onCan
               </span>
             ))}
           </div>
+        </div>
+        {/* 비디오 URL 또는 임베드 코드 입력 */}
+        <div>
+          <label className="block font-medium mb-1">비디오 URL 또는 임베드 코드</label>
+          <textarea
+            value={form.video_url}
+            onChange={e => handleInputChange('video_url', e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            rows={4}
+            placeholder="YouTube URL, Vimeo URL, 또는 iframe 임베드 코드를 입력하세요&#10;예: https://www.youtube.com/watch?v=VIDEO_ID&#10;예: https://vimeo.com/123456789&#10;예: &lt;iframe src=&quot;...&quot;&gt;&lt;/iframe&gt;"
+          />
+          <div className="text-xs text-gray-500 mt-1">
+            💡 YouTube, Vimeo URL 또는 iframe 임베드 코드를 입력할 수 있습니다
+          </div>
+          {form.video_url && (
+            <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
+              비디오가 설정되었습니다
+            </div>
+          )}
+        </div>
+        
+        {/* Vimeo URL 입력 (우선순위) */}
+        <div>
+          <label className="block font-medium mb-1">Vimeo URL (우선순위)</label>
+          <input
+            type="url"
+            value={form.vimeo_url}
+            onChange={e => handleInputChange('vimeo_url', e.target.value)}
+            className="w-full px-3 py-2 border rounded"
+            placeholder="https://vimeo.com/123456789 또는 https://player.vimeo.com/video/123456789"
+          />
+          <div className="text-xs text-gray-500 mt-1">
+            💡 Vimeo URL이 있으면 우선적으로 Vimeo 플레이어를 사용합니다
+          </div>
+          {form.vimeo_url && (
+            <div className="mt-2 p-2 bg-purple-50 rounded text-sm text-purple-700">
+              Vimeo 비디오가 설정되었습니다 (우선순위)
+            </div>
+          )}
         </div>
       </div>
       {/* 버튼 영역 */}

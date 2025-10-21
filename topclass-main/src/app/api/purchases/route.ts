@@ -40,38 +40,87 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { courseId } = purchaseSchema.parse(body)
 
-    // Check if course exists (더미 데이터로 임시 처리)
+    // 실제 데이터베이스에서 강의 조회
     console.log('🔍 강의 조회 중:', courseId)
     
-    // 더미 강의 데이터
-    const dummyCourses = {
-      'course-1': { id: 'course-1', title: 'React 기초 강의', price: 50000 },
-      'course-2': { id: 'course-2', title: 'Next.js 완벽 가이드', price: 80000 },
-      'course-3': { id: 'course-3', title: 'TypeScript 마스터', price: 60000 },
-      'course-4': { id: 'course-4', title: 'Node.js 백엔드 개발', price: 70000 },
-      'course-5': { id: 'course-5', title: 'Python 데이터 분석', price: 90000 },
-      'course-6': { id: 'course-6', title: 'JavaScript ES6+', price: 40000 },
-      'course-7': { id: 'course-7', title: 'Vue.js 3 완벽 가이드', price: 75000 },
-      'course-8': { id: 'course-8', title: 'Angular 프레임워크', price: 85000 },
-    }
-
-    const course = dummyCourses[courseId as keyof typeof dummyCourses]
+    const { data: course, error: courseError } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('id', courseId)
+      .single()
     
-    if (!course) {
-      console.log('❌ 강의를 찾을 수 없습니다:', courseId)
+    if (courseError || !course) {
+      console.log('❌ 강의를 찾을 수 없습니다:', courseId, courseError?.message)
       return NextResponse.json(
         { success: false, error: '강의를 찾을 수 없습니다.' },
         { status: 404 }
       )
     }
     
-    console.log('✅ 강의 찾음:', course.title, '가격:', course.price)
+    console.log('✅ 강의 찾음:', course.title, '카테고리:', course.category)
+    
+    // 무료강의인 경우 수강신청으로 처리
+    if (course.category === '무료강의') {
+      console.log('🎓 무료강의 수강신청 처리 중...')
+      
+      // 기존 수강신청 확인
+      const { data: existingEnrollment } = await supabase
+        .from('enrollments')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('course_id', courseId)
+        .eq('status', 'active')
+        .single()
+      
+      if (existingEnrollment) {
+        console.log('❌ 이미 수강신청한 강의입니다.')
+        return NextResponse.json(
+          { success: false, error: '이미 수강신청한 강의입니다.' },
+          { status: 400 }
+        )
+      }
+      
+      // 새로운 수강신청 생성
+      const { data: enrollment, error: enrollmentError } = await supabase
+        .from('enrollments')
+        .insert({
+          user_id: user.id,
+          course_id: courseId,
+          status: 'active',
+          enrolled_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+      
+      if (enrollmentError) {
+        console.error('❌ 수강신청 생성 실패:', enrollmentError)
+        return NextResponse.json(
+          { success: false, error: '수강신청 처리 중 오류가 발생했습니다.' },
+          { status: 500 }
+        )
+      }
+      
+      console.log('✅ 무료강의 수강신청 완료:', enrollment.id)
+      
+      return NextResponse.json({
+        success: true,
+        data: enrollment,
+        message: '무료강의 수강신청이 완료되었습니다.'
+      })
+    }
+    
+    // 유료강의인 경우 구매 처리
+    console.log('💰 유료강의 구매 처리 중...')
 
-    // Check if already purchased (더미 데이터로 임시 처리)
+    // 기존 구매 내역 확인
     console.log('🔍 기존 구매 내역 확인 중...')
     
-    // 임시로 항상 새로운 구매로 처리 (실제로는 로컬 스토리지나 메모리에서 확인)
-    const existingPurchase = null // 실제로는 구매 내역을 확인해야 함
+    const { data: existingPurchase } = await supabase
+      .from('purchases')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('course_id', courseId)
+      .single()
     
     if (existingPurchase) {
       console.log('❌ 이미 구매한 강의입니다.')
@@ -81,17 +130,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create purchase record (더미 데이터로 임시 처리)
+    // 구매 기록 생성
     console.log('💳 구매 기록 생성 중...')
     
-    const purchase = {
-      id: `purchase-${Date.now()}`,
-      user_id: user.id,
-      course_id: courseId,
-      amount: course.price,
-      status: 'completed',
-      created_at: new Date().toISOString(),
-      courses: course
+    const { data: purchase, error: purchaseError } = await supabase
+      .from('purchases')
+      .insert({
+        user_id: user.id,
+        course_id: courseId,
+        amount: course.price || 0,
+        status: 'completed',
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+    
+    if (purchaseError) {
+      console.error('❌ 구매 기록 생성 실패:', purchaseError.message)
+      return NextResponse.json(
+        { success: false, error: '구매 처리 중 오류가 발생했습니다.' },
+        { status: 500 }
+      )
     }
     
     console.log('✅ 구매 기록 생성 완료:', purchase.id)
@@ -99,6 +158,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: purchase,
+      message: '강의 구매가 완료되었습니다.'
     })
   } catch (error) {
     if (error instanceof z.ZodError) {

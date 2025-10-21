@@ -4,6 +4,12 @@ import { supabase } from '@/lib/supabase';
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const id = params.id;
   const payload = await request.json();
+  
+  console.log('🔧 강의 수정 요청:', {
+    courseId: id,
+    video_url: payload.video_url,
+    hasVideoUrl: !!payload.video_url
+  });
 
   // courses 테이블 스키마에 맞는 필드만 남기고 전달
   const updateFields: any = {
@@ -15,7 +21,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     ...(payload.price !== undefined && { price: payload.price }),
     ...(payload.original_price !== undefined && { original_price: payload.original_price }),
     ...(payload.thumbnail_url !== undefined && { thumbnail_url: payload.thumbnail_url }),
-    ...(payload.detail_image_url !== undefined && { detail_image_url: payload.detail_image_url }), // <<< 추가!!
+    ...(payload.detail_image_url !== undefined && { detail_image_url: payload.detail_image_url }),
+    ...(payload.video_url !== undefined && { video_url: payload.video_url }), // video_url 필드 활성화 (URL 또는 임베드 코드)
     ...(payload.tags !== undefined && { tags: payload.tags }),
     ...(payload.duration !== undefined && { duration: payload.duration }),
     ...(payload.level !== undefined && { level: payload.level }),

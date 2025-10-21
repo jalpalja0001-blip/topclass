@@ -31,6 +31,7 @@ interface CourseForm {
   tags: string[]
   thumbnail_url: string
   detail_image_url: string
+  video_url: string
 }
 
 interface UploadResponse {
@@ -58,7 +59,8 @@ export default function CreateCoursePage() {
     is_featured: false,
     tags: [],
     thumbnail_url: '',
-    detail_image_url: ''
+    detail_image_url: '',
+    video_url: ''
   })
   const [customCategory, setCustomCategory] = useState('')
 
@@ -160,19 +162,115 @@ export default function CreateCoursePage() {
   }
 
   const handleCreate = async (form: CourseFormData) => {
+    console.log('🔥 handleCreate 함수 호출됨!')
+    console.log('📋 전달받은 form 데이터:', form)
+    
+    // 로딩 상태 확인
+    if (loading) {
+      console.log('⚠️ 이미 처리 중입니다. 중복 요청 방지');
+      return;
+    }
+    
     setLoading(true)
     setError(null)
     try {
+      console.log('🚀 강의 생성 시작:', form)
+      
+      // JSON 데이터로 전송 (FormData 대신)
+      const requestData = {
+        title: form.title,
+        description: form.description,
+        instructor: form.instructor,
+        category: form.category,
+        price: form.price,
+        original_price: form.original_price,
+        duration: form.duration,
+        level: form.level,
+        status: form.status,
+        is_featured: form.is_featured,
+        tags: form.tags,
+        thumbnail_url: form.thumbnail_url || '',
+        detail_image_url: form.detail_image_url || '',
+        video_url: form.video_url || ''
+        // vimeo_url: form.vimeo_url || '' // 임시로 주석 처리
+      }
+      
+      console.log('📤 JSON 데이터 전송 시작...')
+      console.log('📊 전송할 데이터:', requestData)
+      
       const response = await fetch('/api/admin/courses/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
       })
-      const data = await response.json()
-      if (!data.success) throw new Error(data.error || '강의 생성에 실패했습니다.')
+      
+      console.log('📡 응답 상태:', response.status, response.ok)
+      console.log('📡 응답 헤더:', Object.fromEntries(response.headers.entries()))
+      
+      // 응답 텍스트를 먼저 확인
+      const responseText = await response.text()
+      console.log('📦 원본 응답 텍스트:', responseText)
+      
+      let data
+      try {
+        data = JSON.parse(responseText)
+        console.log('📦 파싱된 응답 데이터:', data)
+        console.log('📦 응답 데이터 타입:', typeof data)
+        console.log('📦 success 값:', data.success)
+        console.log('📦 error 값:', data.error)
+        console.log('📦 message 값:', data.message)
+      } catch (jsonError) {
+        console.error('❌ JSON 파싱 실패:', jsonError)
+        console.error('❌ 원본 응답:', responseText)
+        throw new Error('서버 응답을 파싱할 수 없습니다.')
+      }
+      
+      // 응답이 빈 객체인 경우 처리
+      if (!data || Object.keys(data).length === 0) {
+        console.error('❌ 빈 응답 데이터')
+        throw new Error('서버에서 빈 응답을 받았습니다.')
+      }
+      
+      // success 필드 확인
+      console.log('🔍 success 필드 상세 분석:')
+      console.log('  - data.success:', data.success)
+      console.log('  - typeof data.success:', typeof data.success)
+      console.log('  - data.success === true:', data.success === true)
+      console.log('  - data.success === false:', data.success === false)
+      console.log('  - data.success === undefined:', data.success === undefined)
+      
+      // success 필드가 명시적으로 false이거나 undefined인 경우
+      if (data && (data.success === false || data.success === undefined)) {
+        try {
+          console.error('❌ API 응답 실패:', data)
+          
+          // 간단하고 안전한 오류 메시지 생성
+          let errorMessage = '강의 생성에 실패했습니다.'
+          
+          // 오류 메시지 우선순위: error > message > details
+          if (data && data.error) {
+            errorMessage = String(data.error)
+          } else if (data && data.message) {
+            errorMessage = String(data.message)
+          } else if (data && data.details) {
+            errorMessage = String(data.details)
+          }
+          
+          console.error('❌ 최종 오류 메시지:', errorMessage)
+          throw new Error(errorMessage)
+        } catch (errorHandlingError) {
+          console.error('❌ 오류 처리 중 예외 발생:', errorHandlingError)
+          throw new Error('강의 생성에 실패했습니다.')
+        }
+      }
+      
+      console.log('✅ 강의 생성 성공!')
       alert('강의가 성공적으로 생성되었습니다!')
       window.location.href = '/admin/courses?refresh=' + Date.now()
     } catch (error: any) {
+      console.error('❌ 강의 생성 오류:', error)
       setError(error.message || '강의 생성 오류')
     } finally {
       setLoading(false)
@@ -208,6 +306,36 @@ export default function CreateCoursePage() {
         </div>
       )}
       <CourseForm mode="create" onSubmit={handleCreate} loading={loading} onCancel={() => {window.location.href = '/admin/courses'}} />
+      
+      {/* 임시 디버깅 버튼 */}
+      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
+        <h3 className="font-bold text-yellow-800">🔧 디버깅 도구</h3>
+        <button 
+          onClick={() => {
+            console.log('🔥 수동 테스트 시작!');
+            handleCreate({
+              title: '테스트 강의',
+              description: '테스트 설명',
+              instructor: '테스트 강사',
+              category: '무료강의',
+              price: 0,
+              original_price: 0,
+              duration: 0,
+              level: 'beginner',
+              status: 'draft',
+              is_featured: false,
+              tags: [],
+              thumbnail_url: '',
+              detail_image_url: '',
+              video_url: '',
+              video_file: null
+            });
+          }}
+          className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+        >
+          🧪 수동 테스트 실행
+        </button>
+      </div>
     </div>
   )
 }

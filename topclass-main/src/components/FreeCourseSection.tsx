@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Play, Users, Clock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Play, Users, Clock, Star } from 'lucide-react'
 
 interface Course {
   id: string
@@ -203,10 +203,10 @@ export default function FreeCourseSection() {
                     className="px-3"
                     style={{ width: `${100 / freeCourses.length}%` }}
                   >
-                    <Link href={`/courses/${course.id}`} className="block group">
-                      <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 h-full flex flex-col border-2 border-blue-200">
-                        {/* Course Image */}
-                        <div className="aspect-square relative overflow-hidden flex-shrink-0">
+                    <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group-hover:-translate-y-1 h-full flex flex-col border-2 border-blue-200 group">
+                        {/* Course Image - 클릭 가능 */}
+                        <Link href={`/courses/${course.id}`} className="block">
+                          <div className="aspect-square relative overflow-hidden flex-shrink-0 cursor-pointer">
                           {course.thumbnail_url ? (
                             <img
                               src={course.thumbnail_url}
@@ -229,31 +229,40 @@ export default function FreeCourseSection() {
                               무료강의
                             </span>
                           </div>
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="bg-white/90 rounded-full p-3">
-                              <Play className="w-6 h-6 text-blue-600" />
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="bg-white/90 rounded-full p-3">
+                                <Play className="w-6 h-6 text-blue-600" />
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        </Link>
 
-                        {/* Course Info */}
+                        {/* Course Info - 다른 카드와 동일한 구조 */}
                         <div className="p-4 flex-1 flex flex-col">
-                          <div className="text-xs text-blue-600 mb-2">{course.category?.name || '무료강의'}</div>
-                          
-                          {/* 제목과 설명 - 고정 높이 영역 */}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">
+                              {course.category?.name || '무료강의'}
+                            </span>
+                            <div className="flex items-center text-xs text-gray-500">
+                              <Star className="w-3 h-3 text-yellow-400 mr-1" />
+                              <span>4.8</span>
+                            </div>
+                          </div>
+
+                          {/* 제목과 설명 */}
                           <div className="flex-1 mb-3">
-                            <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight h-8">
+                            <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
                               {course.title}
                             </h3>
                             
-                            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed h-6">
+                            <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
                               {course.description}
                             </p>
                           </div>
 
-                          {/* 가격 정보 - 고정 높이 */}
+                          {/* 가격 정보 */}
                           <div className="flex items-center justify-between mb-3">
-                            <div className="flex flex-col h-8 justify-end w-full">
+                            <div className="flex flex-col w-full">
                               {course.original_price && course.original_price > 0 ? (
                                 <>
                                   <div className="text-sm text-gray-500 line-through">
@@ -264,38 +273,44 @@ export default function FreeCourseSection() {
                                   </div>
                                 </>
                               ) : (
-                                <>
-                                  <div className="h-5"></div>
-                                  <div className="text-xl font-bold text-blue-600">
-                                    무료
-                                  </div>
-                                </>
+                                <div className="text-xl font-bold text-blue-600">
+                                  무료
+                                </div>
                               )}
                             </div>
                           </div>
 
                           {/* Stats */}
                           <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                            <div className="flex items-center">
-                              <Users className="w-4 h-4 mr-1" />
+                            <div className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
                               <span>{course._count?.purchases || 0}명 수강</span>
                             </div>
-                            <div className="flex items-center">
-                              <Clock className="w-4 h-4 mr-1" />
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
                               <span>{course.duration ? `${course.duration}분` : '시간 정보 없음'}</span>
                             </div>
                           </div>
                           
                           {/* 강의 레벨과 수강생 수 */}
-                          <div className="flex items-center justify-between text-xs text-gray-400">
+                          <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
                             <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                               {course.level === 'beginner' ? '초급' : course.level === 'intermediate' ? '중급' : '고급'}
                             </span>
                             <span>{course._count?.lessons || 0}개 강의</span>
                           </div>
+
+                          {/* 무료 수강신청 버튼 */}
+                          <div className="mt-3">
+                            <Link
+                              href={`/courses/${course.id}`}
+                              className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center text-sm"
+                            >
+                              무료 수강신청
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </Link>
                   </div>
                 ))
               )}
